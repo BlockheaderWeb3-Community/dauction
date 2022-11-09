@@ -28,8 +28,8 @@ contract Dauction is ReentrancyGuard {
 
     // bidder's props
     struct Bid {
-        address bidder;
-        uint256 bidId;
+       // address bidder;
+      //  uint256 bidId;
         uint256 amountBidded;
         bytes32 bidCommitHash;
         uint256 biddedAt; // time of initiation of bid
@@ -73,8 +73,8 @@ contract Dauction is ReentrancyGuard {
     event BidCreated(
         address nftContractAddress,
         uint256 tokenId,
-        bytes32 bidCommitment,
-        uint256 bidId
+        bytes32 bidCommitment
+       // uint256 bidId
     );
 
     event BidRevealed(
@@ -165,6 +165,7 @@ contract Dauction is ReentrancyGuard {
         bytes32 bidCommitment,
         address bidToken
     ) external nonReentrant {
+		
         require(
             auctions[nftContractAddress][tokenId].owner != address(0),
             "non-existent auction item"
@@ -179,27 +180,28 @@ contract Dauction is ReentrancyGuard {
         );
 
         Auction storage auction = auctions[nftContractAddress][tokenId];
-
+		require(block.timestamp >= auction.startTime, "Auction has not started" );
         require(msg.sender != auction.owner, "seller cannot bid");
 
         require(auction.endTime >= block.timestamp, "auction is finished");
 
         Bid storage bid = auction.bids[msg.sender];
+		require(bid.bidCommitHash == bytes32(0), "BidCommithash has been initialized");
 
         bid.bidCommitHash = _hashBidAmount(msg.sender, bidCommitment, bidToken); // hash the bid
 
-        bid.bidder = msg.sender;
+       // bid.bidder = msg.sender;
 
-        uint256 bidCounter = bid.bidId;
+       // uint256 bidCounter = bid.bidId;
 
-        uint256 bidId = bidCounter;
+        //uint256 bidId = bidCounter;
 
-        bid.bidId = bidCounter + 1;
+       // bid.bidId = bidCounter + 1;
 
         bid.bidToken = bidToken;
         auction.bidders.push(msg.sender);
 
-        emit BidCreated(nftContractAddress, tokenId, bidCommitment, bidId);
+        emit BidCreated(nftContractAddress, tokenId, bidCommitment);
     }
 
     function revealBid(
@@ -258,6 +260,19 @@ contract Dauction is ReentrancyGuard {
             bidValue
         );
     }
+
+	function deleteAuction(address _nftContractAddress,  uint _tokenId) internal  {
+
+		
+	Auction storage auction = auctions[_nftContractAddress][_tokenId];
+
+	for (uint i; i < auction.bidders.length; i++){
+		auction.bids[auction.bidders[i]] = auction.bids[address(0)];	
+	}
+	 delete auctions[_nftContractAddress][_tokenId];
+    
+		
+	}
 
     /**
      * @dev allows only auctioneer to settle auction
@@ -328,7 +343,7 @@ contract Dauction is ReentrancyGuard {
             IERC20(selectedBidToken).safeTransferFrom(
                 highestBidder,
                 msg.sender,
-                highestBidAmount
+                bidAmount
             );
 
             // transfer NFT to highest bidder
@@ -337,6 +352,8 @@ contract Dauction is ReentrancyGuard {
                 highestBidder,
                 tokenId
             );
+
+			deleteAuction(nftAddress, tokenId);
 
             // emit SettleAuction event
             emit AuctionSettled(
