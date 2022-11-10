@@ -6,7 +6,9 @@ const parseToken = (payload: string) => parseEther(payload)
 const formatToken = (payload: BigNumberish) => formatEther(payload)
 
 // Convert returned price feed to number using appropriate decimals
-const convertPriceToNumber = (price: number, decimals: number) => 
+const convertPriceToNumber = (price: number, decimals: number): Number => 
     Number((price / Math.pow(10, decimals)).toFixed(2));
+
+
 
 export { parseToken, formatToken, convertPriceToNumber }

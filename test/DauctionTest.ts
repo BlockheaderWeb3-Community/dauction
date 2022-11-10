@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
 import { convertPriceToNumber } from "../utils/conversion.utils";
-import { WETH_USD, WBTC_USD, LINK_USD} from "../utils/price_feed_constants.utils"
+import { WETH_USD, WBTC_USD, LINK_USD } from "../utils/price_feed_constants.utils"
 import { hexify, decodeBidHash, numToBytes32, testDecodeHash, hashCommitmentParams, createSalt } from "../utils/hex.utils"
 import { parseEther, formatEther } from "ethers/lib/utils";
 import { utils, BigNumber } from "ethers";
@@ -39,20 +39,20 @@ describe("Dauction Marketplace", async () => {
     const nftDeployer = new NFTContract__factory(deployer);
     nftContract = await nftDeployer.deploy('DauctionNFT', 'dNFT');  // ntf contract deployment
 
-     // mockUSDT contract deployment
-     const ERC20Deployer = new MockToken__factory(deployer);
-     mockUSDT = await ERC20Deployer.deploy("MockUSDT", mUSDT);
-      
-     // mockWETH contract deployment
-     mockWETH = await ERC20Deployer.deploy("MockWETH", mWETH);
-      
-     // mockWBTC contract deployment
-     mockWBTC = await ERC20Deployer.deploy("MockWBTC", mWBTC);
-      
-     // mockLINK contract deployment
-     mockLINK = await ERC20Deployer.deploy("MockLINK", mLINK);
-     
-     // Dauction constructor params
+    // mockUSDT contract deployment
+    const ERC20Deployer = new MockToken__factory(deployer);
+    mockUSDT = await ERC20Deployer.deploy("MockUSDT", mUSDT);
+
+    // mockWETH contract deployment
+    mockWETH = await ERC20Deployer.deploy("MockWETH", mWETH);
+
+    // mockWBTC contract deployment
+    mockWBTC = await ERC20Deployer.deploy("MockWBTC", mWBTC);
+
+    // mockLINK contract deployment
+    mockLINK = await ERC20Deployer.deploy("MockLINK", mLINK);
+
+    // Dauction constructor params
     const DAUCTION_CONSTRUCTOR_PARAMS = [
       {
         token: mockUSDT.address,
@@ -75,51 +75,51 @@ describe("Dauction Marketplace", async () => {
     const dauctionDeployer = new Dauction__factory(deployer);
     dauction = await dauctionDeployer.deploy(DAUCTION_CONSTRUCTOR_PARAMS, mockUSDT.address);
 
-     // first 10 nft mint by deployer
+    // first 10 nft mint by deployer
     for (let i = 0; i < 10; i++) {
-       await nftContract.mintNFT();
-      }
+      await nftContract.mintNFT();
+    }
     const transferAmount = parseEther(INITIAL_TOKEN_TRANSFER_AMOUNT.toString());
     // transaction: transfer 1k mockUSDT to addr1
     await mockUSDT.transfer(addr1.address, transferAmount);
-    
+
     // transaction: transfer 1k mockUSDT to addr2
     await mockUSDT.transfer(addr2.address, transferAmount);
-    
+
     // transaction: transfer 1k mockUSDT to addr3
     await mockUSDT.transfer(addr3.address, transferAmount);
-    
+
     // transaction: transfer NFT 1 to addr1
     await nftContract.transferFrom(deployer.address, addr1.address, 1);
-    
+
     // transaction: transfer NFT 2 to addr2
     await nftContract.transferFrom(deployer.address, addr2.address, 2);
     // transaction: transfer NFT 2 to addr3
     await nftContract.connect(deployer).transferFrom(deployer.address, addr3.address, 3);
-    
+
   })
 
   describe('Deployment', () => {
     it("Should correctly set bid tokens", async () => {
-      expect (await dauction.checkBidTokenUSDTEquivalence(mockUSDT.address)).to.eq(true);
-      expect (await dauction.bidTokenToPriceFeed(mockWETH.address)).to.eq(WETH_USD);
-      expect (await dauction.bidTokenToPriceFeed(mockWBTC.address)).to.eq(WBTC_USD);
-      expect (await dauction.bidTokenToPriceFeed(mockLINK.address)).to.eq(LINK_USD);
-      expect (await dauction.bidTokenToPriceFeed(mockUSDT.address)).to.eq(ethers.constants.AddressZero);
-      });
+      expect(await dauction.checkBidTokenUSDTEquivalence(mockUSDT.address)).to.eq(true);
+      expect(await dauction.bidTokenToPriceFeed(mockWETH.address)).to.eq(WETH_USD);
+      expect(await dauction.bidTokenToPriceFeed(mockWBTC.address)).to.eq(WBTC_USD);
+      expect(await dauction.bidTokenToPriceFeed(mockLINK.address)).to.eq(LINK_USD);
+      expect(await dauction.bidTokenToPriceFeed(mockUSDT.address)).to.eq(ethers.constants.AddressZero);
+    });
   })
 
   describe('Mint NFt', () => {
     it("Should return mint status following successful deployment", async () => {
-        expect(await nftContract.ownerOf(1)).to.eq(addr1.address);
-        expect(await nftContract.ownerOf(2)).to.eq(addr2.address);
-        expect(await nftContract.ownerOf(3)).to.eq(addr3.address);
-        expect(await nftContract.totalMinted()).to.eq(10);
-      
+      expect(await nftContract.ownerOf(1)).to.eq(addr1.address);
+      expect(await nftContract.ownerOf(2)).to.eq(addr2.address);
+      expect(await nftContract.ownerOf(3)).to.eq(addr3.address);
+      expect(await nftContract.totalMinted()).to.eq(10);
+
     })
   })
   describe('Price Feed', () => {
-    it("should return formatted price feed of tokens", async () => {
+    it.only("should return formatted price feed of tokens", async () => {
 
       // WETH/USD price
       const wEthPriceResult = await dauction.getLatestPrice(WETH_USD)
@@ -129,7 +129,7 @@ describe("Dauction Marketplace", async () => {
       console.log("weth decimals___", wethDecimals)
 
       // Convert the price to a number and return it
-      const formattedEthPrice = convertPriceToNumber(wethPrice, wethDecimals);
+      const formattedEthPrice = convertPriceToNumber(Number(wethPrice), wethDecimals);
 
       console.log("formatted weth price", formattedEthPrice)
       // assertion statement that WETH price is gte 1000 USD based on real-time exchange rate
@@ -139,7 +139,7 @@ describe("Dauction Marketplace", async () => {
       const wBTCPriceResult = await dauction.getLatestPrice(WBTC_USD)
       const [wbtcPrice, wbtcDecimals] = wBTCPriceResult
 
-      const formattedWbtcPrice = convertPriceToNumber(wbtcPrice, wbtcDecimals)
+      const formattedWbtcPrice = convertPriceToNumber(Number(wbtcPrice), wbtcDecimals)
 
       console.log("formatted BTC price", formattedWbtcPrice)
       // assertion statement that WBTC price is gte 10000 USD based on real-time exchange rate
@@ -150,7 +150,7 @@ describe("Dauction Marketplace", async () => {
       const [linkPrice, linkDecimals] = linkPriceResult
 
       // const formattedLinkPrice =  Number((linkPrice.toString() / Math.pow(10, linkDecimals)).toFixed(2));
-      const formattedLinkPrice = convertPriceToNumber(linkPrice, linkDecimals)
+      const formattedLinkPrice = convertPriceToNumber(Number(linkPrice), linkDecimals)
 
       console.log("formatted link price", formattedLinkPrice)
 
@@ -169,7 +169,7 @@ describe("Dauction Marketplace", async () => {
 
     });
 
-        //   it("should revert attempt to map invalid bid tokens", async () => {
+    //   it("should revert attempt to map invalid bid tokens", async () => {
     //     // revert invalid bid tokens
     //     expect(dauction.mapSelectedBidTokenToPriceFeed(ZERO_ADDRESS)).to.be.reverted
     //     expect(dauction.mapSelectedBidTokenToPriceFeed(WBTC_USD)).to.be.reverted
@@ -299,28 +299,27 @@ describe("Dauction Marketplace", async () => {
   // })
 
   describe('Create Auction Validations', () => {
-    it.only("should revert bidder attempt to bid below minimum USDT amount", async () => {
+    it("should revert bidder attempt to bid below minimum USDT amount", async () => {
       // addr1 approves auction contract
       await nftContract.connect(addr1).approve(dauction.address, 1)
-      
+
       let auctionStartTime = Math.floor(Date.now() / 1000) + (60)
       let auctionEndTime = Math.floor(Date.now() / 1000) + (60 * 60 * 2)
 
-      const setTime = async(hours: number) => await time.latest() + (hours * 60 * 60)
+      const setTime = async (hours: number) => await time.latest() + (hours * 60 * 60)
 
-           const FAIL_CASES = [
+      const FAIL_CASES = [
         [nftContract.address, 1, 0, setTime(2), setTime(4), setTime(5)],
         [nftContract.address, 1, 5, setTime(0), setTime(2), setTime(3)],
         [nftContract.address, 1, 5, setTime(3), setTime(1), setTime(3)],
         [nftContract.address, 1, 5, setTime(2), setTime(2), setTime(2)]
       ] as const
 
-      const CASES  = [
+      const CASES = [
         [nftContract.address, 1, 5, setTime(2), setTime(5), setTime(6)]
 
       ] as const
 
-      const auctionParams = [nftContract.address, 1, 0, auctionStartTime, auctionEndTime]
 
       expect(dauction.createAuction(...CASES[0])).to.be.reverted // revert non-NFT owner to set auction
       expect(dauction.connect(addr1).createAuction(...FAIL_CASES[0])).to.be.reverted // revert 0 auction amount
