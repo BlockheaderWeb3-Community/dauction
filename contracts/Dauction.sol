@@ -417,8 +417,10 @@ contract Dauction is ReentrancyGuard {
         public
         view
         returns (bool)
+
     {
-        _bidToken == USDT ? true : false;
+
+       return _bidToken == USDT ? true : false;
     }
 
     function _hashBidAmount(

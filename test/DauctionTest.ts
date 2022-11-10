@@ -119,14 +119,11 @@ describe("Dauction Marketplace", async () => {
     })
   })
   describe('Price Feed', () => {
-    it.only("should return formatted price feed of tokens", async () => {
+    it("should return formatted price feed of tokens", async () => {
 
       // WETH/USD price
       const wEthPriceResult = await dauction.getLatestPrice(WETH_USD)
-      console.log("price result__", wEthPriceResult)
       const [wethPrice, wethDecimals] = wEthPriceResult
-      console.log("weth price__", wethPrice)
-      console.log("weth decimals___", wethDecimals)
 
       // Convert the price to a number and return it
       const formattedEthPrice = convertPriceToNumber(Number(wethPrice), wethDecimals);
@@ -152,7 +149,7 @@ describe("Dauction Marketplace", async () => {
       // const formattedLinkPrice =  Number((linkPrice.toString() / Math.pow(10, linkDecimals)).toFixed(2));
       const formattedLinkPrice = convertPriceToNumber(Number(linkPrice), linkDecimals)
 
-      console.log("formatted link price", formattedLinkPrice)
+
 
       // assertion statement that WBTC price is gte 2 USD based on real-time exchange rate
       expect(formattedLinkPrice).to.be.gte(2)
