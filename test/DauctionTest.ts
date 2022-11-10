@@ -12,8 +12,7 @@ import { MockToken } from "../typechain-types/contracts/MockToken";
 import { MockToken__factory } from "../typechain-types/factories/contracts/MockToken__factory";
 import { NFTContract } from "../typechain-types/contracts/NFTContract";
 import { NFTContract__factory } from "../typechain-types/factories/contracts/NFTContract__factory";
-import { time } from "@nomicfoundation/hardhat-network-helpers";
-
+import { setTime } from "../utils/time.utils"
 const INITIAL_TOKEN_TRANSFER_AMOUNT = 1000
 
 const [mUSDT, mLINK, mWBTC, mWETH] = ["mUSDT", "mLINK", "mWBTC", "mWETH"]
@@ -166,15 +165,7 @@ describe("Dauction Marketplace", async () => {
 
     });
 
-    //   it("should revert attempt to map invalid bid tokens", async () => {
-    //     // revert invalid bid tokens
-    //     expect(dauction.mapSelectedBidTokenToPriceFeed(ZERO_ADDRESS)).to.be.reverted
-    //     expect(dauction.mapSelectedBidTokenToPriceFeed(WBTC_USD)).to.be.reverted
-    //     expect(dauction.mapSelectedBidTokenToPriceFeed(WETH_USD)).to.be.reverted
-    //     expect(dauction.mapSelectedBidTokenToPriceFeed(LINK_USD)).to.be.reverted
-    //   })
 
-    // 
   })
 
 
@@ -296,46 +287,33 @@ describe("Dauction Marketplace", async () => {
   // })
 
   describe('Create Auction Validations', () => {
-    it("should revert bidder attempt to bid below minimum USDT amount", async () => {
+    it("should revert negative create auction cases", async () => {
       // addr1 approves auction contract
       await nftContract.connect(addr1).approve(dauction.address, 1)
 
-      let auctionStartTime = Math.floor(Date.now() / 1000) + (60)
-      let auctionEndTime = Math.floor(Date.now() / 1000) + (60 * 60 * 2)
-
-      const setTime = async (hours: number) => await time.latest() + (hours * 60 * 60)
-
+      
       const FAIL_CASES = [
         [nftContract.address, 1, 0, setTime(2), setTime(4), setTime(5)],
         [nftContract.address, 1, 5, setTime(0), setTime(2), setTime(3)],
         [nftContract.address, 1, 5, setTime(3), setTime(1), setTime(3)],
-        [nftContract.address, 1, 5, setTime(2), setTime(2), setTime(2)]
-      ] as const
-
-      const CASES = [
+        [nftContract.address, 1, 5, setTime(2), setTime(2), setTime(2)],
         [nftContract.address, 1, 5, setTime(2), setTime(5), setTime(6)]
 
       ] as const
 
+      expect(dauction.connect(addr1).createAuction(...FAIL_CASES[0])).to.be.reverted // revert NFT owner attempt to add 0 minBidPrice
+      expect(dauction.connect(addr1).createAuction(...FAIL_CASES[1])).to.be.reverted // revert NFT owner attempt to set invalid startTime
+      expect(dauction.connect(addr1).createAuction(...FAIL_CASES[2])).to.be.reverted // revert NFT owner attempt to set invalid endTime
+      expect(dauction.connect(addr1).createAuction(...FAIL_CASES[3])).to.be.reverted // revert NFT owner attempt to set invalid duration period
+      expect(dauction.createAuction(...FAIL_CASES[4])).to.be.reverted // revert non-NFT owner attempt to set auction
 
-      expect(dauction.createAuction(...CASES[0])).to.be.reverted // revert non-NFT owner to set auction
-      expect(dauction.connect(addr1).createAuction(...FAIL_CASES[0])).to.be.reverted // revert 0 auction amount
-      expect(dauction.connect(addr1).createAuction(...FAIL_CASES[1])).to.be.reverted
-      expect(dauction.connect(addr1).createAuction(...FAIL_CASES[2])).to.be.reverted
-      expect(dauction.connect(addr1).createAuction(...FAIL_CASES[3])).to.be.reverted
 
-      // after 30s
-      // await new Promise(resolve => {
-      //   // console.log('resolve__', resolve)
-      //   setTimeout(resolve, 3000) // 30s: bidder  
-      // })
 
 
       // *** AUCTION VALIDATIONS *** //
       // expect(dauction.connect(addr1).createAuction(...FAIL_CASES[1])).to.be.reverted // revert invalid end time of  30mins
       // expect(dauction.connect(addr1).createAuction(...FAIL_CASES[2])).to.be.reverted // revert 
-      // const addr1CreateAuctionTxn = await dauction.connect(addr1).createAuction(...CASES[0])
-      // await addr1CreateAuctionTxn.wait()
+
 
       // const auctionDetails = await dauction.auctions(nftContractAddress, 1)
 
@@ -577,6 +555,31 @@ describe("Dauction Marketplace", async () => {
       // expect(dauction.connect(addr1).createBid(1, 5)).to.be.reverted
 
 
+
+    })
+    it("should successfully create auction", async () => {
+      // array containing create auction params
+      const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(2), setTime(5), setTime(6)] as const
+
+      // approve dauction contract to use NFT
+      const addr1ApproveNFTTxn = await nftContract.connect(addr1).approve(dauction.address, 1)
+      await addr1ApproveNFTTxn.wait()
+
+      // nft owner create auction transaction
+      const addr1CreateAuctionTxn = await dauction.connect(addr1).createAuction(...AUCTION_PARAMS)
+      await addr1CreateAuctionTxn.wait()
+
+      // get auction details
+      const auctionDetails = await dauction.auctions(AUCTION_PARAMS[0], AUCTION_PARAMS[1])
+      const { startTime, minBidPrice, endTime, revealDuration, auctionStatus, owner } = auctionDetails
+
+      expect(minBidPrice).to.eq(5) // expect minBidPrice to equal 5
+      expect(auctionStatus).to.eq(1) // expect auctionStatus to equal 1 based on the set enum state
+      expect((startTime)).to.eq(BigNumber.from(await AUCTION_PARAMS[3])) // expect start time to eq passed in start time
+      expect((endTime)).to.eq(BigNumber.from(await AUCTION_PARAMS[4])) // expect start time to eq passed in end time
+      expect((revealDuration)).to.eq(BigNumber.from(await AUCTION_PARAMS[5])) // expect start time to eq passed in end duration time
+      expect(owner).to.eq(addr1.address) // expect auction owner to equal address 1
+  
 
     })
 

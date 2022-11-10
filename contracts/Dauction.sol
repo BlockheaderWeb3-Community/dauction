@@ -43,8 +43,6 @@ contract Dauction is ReentrancyGuard {
         uint256 minBidPrice;
         uint256 endTime;
         uint256 revealDuration;
-        address highestBidAddress;
-        uint256 highestBidAmount;
         AuctionStatus auctionStatus;
         mapping(address => Bid) bids; //
         address[] bidders;
@@ -416,7 +414,7 @@ contract Dauction is ReentrancyGuard {
     function checkBidTokenUSDTEquivalence(address _bidToken)
         public
         view
-        returns (bool)
+        returns (bool )
 
     {
 
