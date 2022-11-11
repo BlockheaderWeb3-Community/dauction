@@ -70,8 +70,8 @@ const createSalt = (num: string | number) => {
 
 
 // function to hash bidders bidvalue - hash of bid value + salt
-const hashCommitmentParams = (bidAmount: number, salt: string | number) =>
-    ethers.utils.keccak256(concatParams(bidAmount, salt));
+const hashCommitmentParams = (bidAmount: number, salt: string | number, tokenAddress: string) =>
+    ethers.utils.solidityKeccak256(["uint256", "uint256", "address"],[bidAmount, salt, tokenAddress]);
 
 
 const ZERO_BYTES_32 = hexify(0)
