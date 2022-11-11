@@ -74,5 +74,6 @@ const hashCommitmentParams = (bidAmount: number, salt: string | number) =>
     ethers.utils.keccak256(concatParams(bidAmount, salt));
 
 
+const ZERO_BYTES_32 = hexify(0)
 
-export { hexify, decodeBidHash, numToBytes32, testDecodeHash, hashCommitmentParams, createSalt };
+export { hexify, decodeBidHash, numToBytes32, testDecodeHash, hashCommitmentParams, createSalt, ZERO_BYTES_32 };

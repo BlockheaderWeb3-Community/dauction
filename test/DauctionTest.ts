@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { convertPriceToNumber } from "../utils/conversion.utils";
 import { WETH_USD, WBTC_USD, LINK_USD, ZERO_ADDRESS } from "../utils/price_feed_constants.utils"
-import { hexify, decodeBidHash, numToBytes32, testDecodeHash, hashCommitmentParams, createSalt } from "../utils/hex.utils"
+import { hexify, decodeBidHash, numToBytes32, testDecodeHash, hashCommitmentParams, createSalt, ZERO_BYTES_32 } from "../utils/hex.utils"
 import { parseEther, formatEther } from "ethers/lib/utils";
 import { utils, BigNumber } from "ethers";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
@@ -593,6 +593,11 @@ describe("Dauction Marketplace", async () => {
 
   describe("Create Bid", async () => {
     it("should revert negative create bid cases", async () => {
+      // addr1/nft owner approves auction contract
+      await nftContract.connect(addr1).approve(dauction.address, 1)
+      const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(2), setTime(5), setTime(6)] as const
+
+
 
       /* 
         CREATE BID PARAMS
@@ -612,19 +617,39 @@ describe("Dauction Marketplace", async () => {
 
       //  hashed bid commitment
       const bidCommitHash = hashCommitmentParams(bidValue, salt)
+      const BID_PARAMS =  [nftContract.address, 1, bidCommitHash, mockWETH.address] as const
 
       const FAIL_BID_PARAMS = [
-        [dauction.address, 1, bidCommitHash, ZERO_ADDRESS],
         [dauction.address, 1, bidCommitHash, mockWETH.address],
-        [nftContract.address, 0, bidCommitHash,],
-        [nftContract.address, 1, hexify(0)]
+        [nftContract.address, 0, bidCommitHash, mockWETH.address],
+        [nftContract.address, 1, bidCommitHash, ZERO_ADDRESS],
+        [nftContract.address, 1, ZERO_BYTES_32, mockWETH.address]
       ] as const
 
 
-      expect(dauction.connect(addr2).createBid(...FAIL_BID_PARAMS[1])).to.be.reverted // revert addr2 attempt to create bid on unauctioned NFT
+
+      // revert addr2 attempt to create bid before auction is created
+      expect(dauction.connect(addr2).createBid(...BID_PARAMS)).to.be.reverted 
+
+      // nft owner creates auction transaction
+      const addr1CreateAuctionTxn = await dauction.connect(addr1).createAuction(...AUCTION_PARAMS)
+      await addr1CreateAuctionTxn.wait()
+
+      // revert bidders attempt to create bid on an unactioned NFT
+      expect(dauction.connect(addr2).createBid(...FAIL_BID_PARAMS[0])).to.be.reverted 
+
+      // revert bidders attempt to create bid on unauctioned NFT token ID
+      expect(dauction.connect(addr2).createBid(...FAIL_BID_PARAMS[1])).to.be.reverted 
+
+      // revert bidders attempt to create bid with invalid token address
+      expect(dauction.connect(addr2).createBid(...FAIL_BID_PARAMS[2])).to.be.reverted 
+
+      // revert bidders attempt to create bid with zero bytes32
+      expect(dauction.connect(addr2).createBid(...FAIL_BID_PARAMS[3])).to.be.reverted 
 
 
 
+      // expect(dauction.connect(addr2).createBid(...FAIL_BID_PARAMS[1])).to.be.reverted // revert addr2 attempt to  create bid on non-existent token
 
 
     })
