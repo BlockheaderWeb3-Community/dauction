@@ -1,19 +1,18 @@
-// import { ethers } from hardhat;
-import ethers from "ethers"
+import { ethers } from "hardhat";
 
 // num to bytes32 
-const hexify = (payload: number) => 
+const hexify = (payload: number) =>
     ethers.utils.hexZeroPad(ethers.utils.hexlify(payload), 32)
 
 
 
 // decode bytes32
-const decodeBidHash = (x: string, y: string) => 
+const decodeBidHash = (x: string, y: string) =>
     ethers.utils.solidityKeccak256(["address", "bytes32"], [x, y])
 
 
 
-const testDecodeHash = (payload: string) => 
+const testDecodeHash = (payload: string) =>
     ethers.utils.solidityKeccak256(["bytes32"], [payload])
 
 
@@ -26,7 +25,7 @@ const stripHexPrefix = (hex: string) => {
 }
 
 
-const addHexPrefix = (hex: string) => 
+const addHexPrefix = (hex: string) =>
     hex.startsWith('0x') ? hex : `0x${hex}`
 
 
@@ -42,19 +41,36 @@ const numToBytes32 = (num: number) => {
     return addHexPrefix(strippedNum.padStart(32 * 2, '0'))
 }
 
-const concatParams = (bidAmount: ethers.ethers.utils.BytesLike, salt: number) => 
-     ethers.utils.concat([
-        ethers.utils.zeroPad(bidAmount, 32),
+// const concatParams = (bidAmount: ethers.ethers.utils.BytesLike, salt: number) => 
+//      ethers.utils.concat([
+//         // ethers.utils.zeroPad(bidAmount, 32), 
+//         ethers.utils.zeroPad(ethers.utils.hexlify(bidAmount), 32), 
+//         ethers.utils.arrayify(salt),
+//     ])
+
+const concatParams = (bidAmount: number, salt: string | number) =>
+    ethers.utils.concat([
+        // ethers.utils.zeroPad(bidAmount, 32), 
+        ethers.utils.zeroPad(numToBytes32(bidAmount), 32),
         ethers.utils.arrayify(salt),
     ])
 
+// // convert num to salt
+// const createSalt = (num: number) =>     // recommended to have random 
+//     ethers.utils.keccak256(ethers.utils.arrayify(num));
+
 // convert num to salt
-const createSalt = (num: number) =>     // recommended to have random 
-    ethers.utils.keccak256(ethers.utils.arrayify(num));
+// recommended to have random 
+const createSalt = (num: string | number) => {
+    const salt = ethers.utils.keccak256(ethers.utils.arrayify(num));
+    console.log("salt__created__", salt)
+    return salt
+
+}
 
 
 // function to hash bidders bidvalue - hash of bid value + salt
-const hashCommitmentParams = (bidAmount: ethers.ethers.utils.BytesLike, salt: number) =>
+const hashCommitmentParams = (bidAmount: number, salt: string | number) =>
     ethers.utils.keccak256(concatParams(bidAmount, salt));
 
 
