@@ -616,13 +616,17 @@ describe("Dauction Marketplace", async () => {
       console.log("resultant salt__", salt)
 
       //  hashed bid commitment
-      const bidCommitHash = hashCommitmentParams(bidValue, salt)
-      const BID_PARAMS =  [nftContract.address, 1, bidCommitHash, mockWETH.address] as const
+      // const bidCommitHash = hashCommitmentParams(bidValue, salt, mock)
+      const bidCommitHash = async (bidValue: number, salt: string | number, bidToken: any) => {
+        const hashReult: string = await hashCommitmentParams(bidValue, salt, bidToken)
+        return hashReult
+      }
+      const BID_PARAMS =  [nftContract.address, 1, hashCommitmentParams(bidValue, salt, mockWETH.address), mockWETH.address] as const
 
       const FAIL_BID_PARAMS = [
-        [dauction.address, 1, bidCommitHash, mockWETH.address],
-        [nftContract.address, 0, bidCommitHash, mockWETH.address],
-        [nftContract.address, 1, bidCommitHash, ZERO_ADDRESS],
+        [dauction.address, 1, hashCommitmentParams(bidValue, salt, mockWETH.address), mockWETH.address],
+        [nftContract.address, 0, hashCommitmentParams(bidValue, salt, mockWETH.address), mockWETH.address],
+        [nftContract.address, 1, hashCommitmentParams(bidValue, salt, mockWETH.address), ZERO_ADDRESS],
         [nftContract.address, 1, ZERO_BYTES_32, mockWETH.address]
       ] as const
 
