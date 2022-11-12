@@ -182,7 +182,7 @@ contract Dauction is ReentrancyGuard {
         );
 
         Auction storage auction = auctions[nftContractAddress][tokenId];
-		require(block.timestamp >= auction.startTime, "Auction has not started" );
+		require(block.timestamp >= auction.startTime, "auction has not started" );
         require(msg.sender != auction.owner, "auction seller cannot bid");
 
         require(auction.endTime >= block.timestamp, "auction has ended");
