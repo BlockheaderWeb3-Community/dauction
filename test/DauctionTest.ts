@@ -415,6 +415,22 @@ describe('Dauction Marketplace', async () => {
       await expect(dauction.connect(addr2).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt))).
         to.be.revertedWith("auction not ended yet");
     })
+
+     it.only("should revert bidder attempt to reveal bid after reveal bid time", async () => {
+      const addr2Salt = 5000
+
+      const addr2BidValue = 5
+      const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(1), setTime(2), setTime(4)] as const;
+      await nftContract.connect(addr1).approve(dauction.address, 1);
+      await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
+      increaseBlockTimestamp(1);
+      await dauction.connect(addr2).createBid(nftContract.address, 1, hashCommitmentParams(addr2BidValue, createSalt(addr2Salt)), mockWETH.address);
+      increaseBlockTimestamp(8)
+
+      await mockWETH.connect(addr2).approve(dauction.address, parseEther('1000'))
+      await expect(dauction.connect(addr2).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt))).
+        to.be.revertedWith("not in reveal phase");
+    })
   })
 })
 
