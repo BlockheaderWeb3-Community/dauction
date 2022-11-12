@@ -292,11 +292,8 @@ contract Dauction is ReentrancyGuard {
     function deleteAuction(address _nftContractAddress, uint256 _tokenId)
         internal
     {
-        require(
-            msg.sender == IERC721(_nftContractAddress).ownerOf(_tokenId),
-            "not owner"
-        );
         Auction storage auction = auctions[_nftContractAddress][_tokenId];
+        require(msg.sender == auction.owner, "not auction owner");
 
         for (uint256 i; i < auction.bidders.length; i++) {
             auction.bids[auction.bidders[i]] = auction.bids[address(0)];
