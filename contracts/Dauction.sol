@@ -236,13 +236,12 @@ contract Dauction is ReentrancyGuard {
             "low token allowance"
         );
 
-        bytes32 commitmentHash = keccak256(
-            abi.encodePacked(bidValue, salt, bidToken)
-        );
+    bytes32 hashBidAndSalt = keccak256(abi.encodePacked(bidValue, salt));
+       
 
         bytes32 verifyCommitHash = _hashBidAmount(
             msg.sender,
-            commitmentHash,
+            hashBidAndSalt,
             bidToken
         );
 
@@ -257,7 +256,7 @@ contract Dauction is ReentrancyGuard {
         emit BidRevealed(
             nftAddress,
             tokenId,
-            commitmentHash,
+            verifyCommitHash,
             msg.sender,
             salt,
             bidValue
