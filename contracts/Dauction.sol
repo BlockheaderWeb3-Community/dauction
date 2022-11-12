@@ -231,8 +231,10 @@ contract Dauction is ReentrancyGuard {
             IERC20(bidToken).balanceOf(msg.sender) >= bidValue,
             "insuff token bal"
         );
+        console.log("dauction log allowance__ %s", IERC20(bidToken).allowance(msg.sender, address(this)));
+        console.log("dauction log allowance check__ %s", IERC20(bidToken).allowance(msg.sender, address(this)) * 1);
         require(
-            IERC20(bidToken).allowance(msg.sender, address(this)) >= bidValue,
+            IERC20(bidToken).allowance(msg.sender, address(this)) >= bidValue, 
             "low token allowance"
         );
 

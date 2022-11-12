@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import { BigNumberish } from "starknet/dist/utils/number";
 
 // num to bytes32 
 const hexify = (payload: number) =>
@@ -70,7 +71,7 @@ const createSalt = (num: string | number) => {
 
 
 // function to hash bidders bidvalue - hash of bid value + salt
-const hashCommitmentParams = (bidAmount: number, salt: string | number) =>
+const hashCommitmentParams = (bidAmount: BigNumberish, salt: string | number) =>
     ethers.utils.solidityKeccak256(["uint256", "bytes32"], [bidAmount, salt]);
 
 
