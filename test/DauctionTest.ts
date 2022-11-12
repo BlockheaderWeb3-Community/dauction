@@ -681,6 +681,19 @@ describe('Dauction Marketplace', async () => {
         to.be.revertedWith("no bids");
     });
 
+    it("allows bidders to successfully create bid with appropriate bid parameters", async () => {
+      const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(1), setTime(4), setTime(6)] as const;
+      await nftContract.connect(addr1).approve(dauction.address, 1);
+      await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
+      increaseBlockTimestamp(1);
+      await dauction.connect(addr2).createBid(nftContract.address, 1, hashCommitmentParams(5, createSalt(5000), mockWETH.address), mockWETH.address);
+      await dauction.connect(addr3).createBid(nftContract.address, 1, hashCommitmentParams(10, createSalt(33300), mockLINK.address), mockLINK.address);
+      
+      const biddersArray = await dauction.getBidders(nftContract.address, 1)
+      expect(biddersArray[0]).to.eq(addr2.address)
+      expect(biddersArray[1]).to.eq(addr3.address)
+    });
+
     
   })
 
