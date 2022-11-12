@@ -388,7 +388,7 @@ describe('Dauction Marketplace', async () => {
       const addr2Salt = 5000
       const addr2BidValue = 5
 
-      console.log("reveal duration__",await  setTime(3))
+      console.log("reveal duration__", await setTime(3))
       const AUCTION_PARAMS = [nftContract.address, 1, 5, await setTime(1), await setTime(2), await setTime(4)] as const;
       await nftContract.connect(addr1).approve(dauction.address, 1);
       await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
@@ -401,7 +401,7 @@ describe('Dauction Marketplace', async () => {
         to.be.revertedWith("no bid commitment");
     })
 
-     it("should revert bidder attempt to reveal bid before reveal bid time", async () => {
+    it("should revert bidder attempt to reveal bid before reveal bid time", async () => {
       const addr2Salt = 5000
 
       const addr2BidValue = 5
@@ -416,7 +416,7 @@ describe('Dauction Marketplace', async () => {
         to.be.revertedWith("auction not ended yet");
     })
 
-     it("should revert bidder attempt to reveal bid after reveal bid time", async () => {
+    it("should revert bidder attempt to reveal bid after reveal bid time", async () => {
       const addr2Salt = 5000
 
       const addr2BidValue = 5
@@ -432,7 +432,7 @@ describe('Dauction Marketplace', async () => {
         to.be.revertedWith("not in reveal phase");
     })
 
-     it("should revert bidder attempt to reveal bid with no or insufficient bidToken balance", async () => {
+    it("should revert bidder attempt to reveal bid with no or insufficient bidToken balance", async () => {
       const addr2Salt = 5000
 
       const addr2BidValue = 5
@@ -447,7 +447,7 @@ describe('Dauction Marketplace', async () => {
         to.be.revertedWith("insuff token bal");
     })
 
-     it("should revert bidder attempt to reveal bid with low allowance set for dauction contract", async () => {
+    it("should revert bidder attempt to reveal bid with low allowance set for dauction contract", async () => {
       const addr2Salt = 5000
 
       const addr2BidValue = parseEther('5')
@@ -459,12 +459,12 @@ describe('Dauction Marketplace', async () => {
       increaseBlockTimestamp(2)
 
       await mockWETH.connect(addr2).approve(dauction.address, parseEther('1'))
-      console.log("allowance for dauction__",formatEther(await mockWETH.allowance(addr2.address, dauction.address)))
+      console.log("allowance for dauction__", formatEther(await mockWETH.allowance(addr2.address, dauction.address)))
       await expect(dauction.connect(addr2).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt))).
         to.be.revertedWith("low token allowance");
     })
 
-     it.only("should revert bidder attempt to reveal bid with invalid reveal bid params", async () => {
+    it("should revert bidder attempt to reveal bid with invalid reveal bid params", async () => {
       const addr2Salt = 5000
 
       const addr2BidValue = parseEther('5')
@@ -476,9 +476,32 @@ describe('Dauction Marketplace', async () => {
       increaseBlockTimestamp(2)
 
       await mockWETH.connect(addr2).approve(dauction.address, addr2BidValue)
-      console.log("allowance for dauction__",formatEther(await mockWETH.allowance(addr2.address, dauction.address)))
+      console.log("allowance for dauction__", formatEther(await mockWETH.allowance(addr2.address, dauction.address)))
       await expect(dauction.connect(addr2).revealBid(nftContract.address, 1, addr2BidValue, createSalt(2))).
         to.be.revertedWith("invalid bid hash");
+    })
+
+
+    it.only("should successfully reveal bid", async () => {
+      const addr2Salt = 5000
+
+      const addr2BidValue = parseEther('5')
+      const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(1), setTime(2), setTime(4)] as const;
+      await nftContract.connect(addr1).approve(dauction.address, 1);
+      await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
+      increaseBlockTimestamp(1);
+      await dauction.connect(addr2).createBid(nftContract.address, 1, hashCommitmentParams(addr2BidValue, createSalt(addr2Salt)), mockWETH.address);
+      increaseBlockTimestamp(2)
+
+      await mockWETH.connect(addr2).approve(dauction.address, addr2BidValue)
+      console.log("allowance for dauction__", formatEther(await mockWETH.allowance(addr2.address, dauction.address)))
+
+
+      await dauction.connect(addr2).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt))
+
+      const { amountBidded } = await dauction.getBid(nftContract.address, 1, addr2.address)
+      expect(amountBidded).to.eq(addr2BidValue)
+
     })
   })
 })
