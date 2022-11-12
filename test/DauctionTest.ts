@@ -41,15 +41,19 @@ describe('Dauction Marketplace', async () => {
     // mockUSDT contract deployment
     const ERC20Deployer = new MockToken__factory(deployer);
     mockUSDT = await ERC20Deployer.deploy("MockUSDT", mUSDT);
+    await mockUSDT.deployed()
 
     // mockWETH contract deployment
     mockWETH = await ERC20Deployer.deploy("MockWETH", mWETH);
+    await mockWETH.deployed()
 
     // mockWBTC contract deployment
     mockWBTC = await ERC20Deployer.deploy("MockWBTC", mWBTC);
+    await mockWBTC.deployed()
 
     // mockLINK contract deployment
     mockLINK = await ERC20Deployer.deploy("MockLINK", mLINK);
+    await mockLINK.deployed()
 
     // Dauction constructor params
     const DAUCTION_CONSTRUCTOR_PARAMS = [
@@ -87,6 +91,37 @@ describe('Dauction Marketplace', async () => {
 
     // transaction: transfer 1k mockUSDT to addr3
     await mockUSDT.transfer(addr3.address, transferAmount);
+
+    // ===== mockETH TRANSFERS ==== //
+    // transaction: transfer 1k mockWBTC to addr1
+    await mockWETH.transfer(addr1.address, transferAmount);
+
+    // transaction: transfer 1k mockWBTC to addr2
+    await mockWETH.transfer(addr2.address, transferAmount);
+
+    // transaction: transfer 1k mockWBTC to addr3
+    await mockWETH.transfer(addr3.address, transferAmount);
+
+
+    // ===== mockWBTC TRANSFERS ==== //
+    // transaction: transfer 1k mockWBTC to addr1
+    await mockWBTC.transfer(addr1.address, transferAmount);
+
+    // transaction: transfer 1k mockWBTC to addr2
+    await mockWBTC.transfer(addr2.address, transferAmount);
+
+    // transaction: transfer 1k mockWBTC to addr3
+    await mockWBTC.transfer(addr3.address, transferAmount);
+
+    // ===== mockLINK TRANSFERS ==== //
+    // transaction: transfer 1k mockWBTC to addr1
+    await mockLINK.transfer(addr1.address, transferAmount);
+
+    // transaction: transfer 1k mockWBTC to addr2
+    await mockLINK.transfer(addr2.address, transferAmount);
+
+    // transaction: transfer 1k mockWBTC to addr3
+    await mockLINK.transfer(addr3.address, transferAmount);
 
     // transaction: transfer NFT 1 to addr1
     await nftContract.transferFrom(deployer.address, addr1.address, 1);
@@ -337,6 +372,42 @@ describe('Dauction Marketplace', async () => {
       expect(addr3BidToken).to.eq(mockLINK.address)
       expect(addr3BidHash).to.eq(addr3UnveilHash)
     });
+  })
+
+  describe("Reveal Bid", async () => {
+    /**
+     * REVEAL BID PARAMS
+     * address nftAddress,
+        uint256 tokenId,
+        uint256 bidValue,
+        bytes32 salt
+     */
+    it("reverts non-bidder attempt to reveal bid", async () => {
+      const addr2Salt = 5000
+      const addr3Salt = 33300
+
+      const addr2BidValue = 5
+      const addr3BidValue = 10
+      const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(1), setTime(4), setTime(6)] as const;
+      await nftContract.connect(addr1).approve(dauction.address, 1);
+      await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
+      increaseBlockTimestamp(1);
+      await dauction.connect(addr2).createBid(nftContract.address, 1, hashCommitmentParams(addr2BidValue, createSalt(addr2Salt)), mockWETH.address);
+
+      // increaseBlockTimestamp(5); // reverted not in reveal phase
+      increaseBlockTimestamp(6); 
+
+      console.log("fast forward time__", increaseBlockTimestamp(5))
+
+      await mockWETH.connect(addr1).approve(dauction.address, parseEther('1000'))
+      // const addr2MockWethBal = await mockWETH.balanceOf(addr2.address)
+      // console.log("address 2 mock weth balance__", addr2MockWethBal)
+
+      await expect(dauction.connect(addr1).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt))).
+        to.be.revertedWith("no bid commitment");
+
+    })
+
   })
 })
 
