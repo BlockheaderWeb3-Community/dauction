@@ -30,7 +30,6 @@ contract Dauction is ReentrancyGuard {
     struct Bid {
         uint256 amountBidded;
         bytes32 bidCommitHash;
-        uint256 biddedAt; // time of initiation of bid
         address bidToken;
     }
 
@@ -63,14 +62,17 @@ contract Dauction is ReentrancyGuard {
         address seller,
         uint256 minBidPrice,
         uint256 startTime,
-        uint256 endTime
+        uint256 endTime, 
+        uint256 revealDuration, 
+        uint256 auctionCreatedAt
     );
 
     event BidCreated(
         address nftContractAddress,
         uint256 tokenId,
-        bytes32 bidCommitment
-        // uint256 bidId
+        bytes32 bidCommitment, 
+        uint256 biddedAt
+
     );
 
     event BidRevealed(
@@ -153,7 +155,9 @@ contract Dauction is ReentrancyGuard {
             seller: msg.sender,
             minBidPrice: _minBidPrice,
             startTime: auction.startTime,
-            endTime: _endTime
+            endTime: _endTime, 
+            revealDuration: _revealDuration, 
+            auctionCreatedAt: block.timestamp
         });
     }
 
@@ -197,7 +201,7 @@ contract Dauction is ReentrancyGuard {
         bid.bidToken = bidToken;
         auction.bidders.push(msg.sender);
 
-        emit BidCreated(nftContractAddress, tokenId, bidCommitment);
+        emit BidCreated(nftContractAddress, tokenId, bidCommitment, block.timestamp);
     }
 
     function revealBid(
@@ -480,15 +484,6 @@ contract Dauction is ReentrancyGuard {
         Auction storage auction = auctions[nftAddress][tokenId];
         require(auction.bidders.length != 0, "no bids");
         return auction.bids[bidder];
-    }
-
-    function getBidHash(
-        address nftAddress,
-        uint256 tokenId,
-        address bidder
-    ) public view returns (bytes32) {
-        
-        return auctions[nftAddress][tokenId].bids[bidder].bidCommitHash;
     }
 }
 

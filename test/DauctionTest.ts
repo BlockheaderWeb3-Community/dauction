@@ -698,12 +698,15 @@ describe('Dauction Marketplace', async () => {
       expect(biddersArray[0]).to.eq(addr2.address)
       expect(biddersArray[1]).to.eq(addr3.address)
 
-      const addr2BidHash = await dauction.getBidHash(nftContract.address, 1, addr2.address)
       const addr2UnveilHash = unveilHashCommitment(addr2.address, hashCommitmentParams(addr2BidValue, createSalt(addr2Salt)), mockWETH.address)
+      const addr3UnveilHash = unveilHashCommitment(addr3.address, hashCommitmentParams(addr3BidValue, createSalt(addr3Salt)), mockLINK.address)
+
+      const { bidToken: addr2BidToken, bidCommitHash: addr2BidHash } = await dauction.getBid(nftContract.address, 1, addr2.address)
+      expect(addr2BidToken).to.eq(mockWETH.address)
       expect(addr2BidHash).to.eq(addr2UnveilHash)
 
-      const addr3BidHash = await dauction.getBidHash(nftContract.address, 1, addr3.address)
-      const addr3UnveilHash = unveilHashCommitment(addr3.address, hashCommitmentParams(addr3BidValue, createSalt(addr3Salt)), mockLINK.address)
+      const { bidToken: addr3BidToken, bidCommitHash: addr3BidHash } = await dauction.getBid(nftContract.address, 1, addr3.address)
+      expect(addr3BidToken).to.eq(mockLINK.address)
       expect(addr3BidHash).to.eq(addr3UnveilHash)
     });
   })
