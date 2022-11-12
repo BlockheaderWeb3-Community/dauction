@@ -477,7 +477,7 @@ contract Dauction is ReentrancyGuard {
         uint256 tokenId,
         address bidder
     ) public view returns (bytes32) {
-        // auction.bids[msg.sender][tokenId];
+        
         return auctions[nftAddress][tokenId].bids[bidder].bidCommitHash;
     }
 }
