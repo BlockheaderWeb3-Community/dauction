@@ -706,8 +706,6 @@ describe('Dauction Marketplace', async () => {
       const addr3UnveilHash = unveilHashCommitment(addr3.address, hashCommitmentParams(addr3BidValue, createSalt(addr3Salt)), mockLINK.address)
       expect(addr3BidHash).to.eq(addr3UnveilHash)
     });
-
-
   })
 
 })

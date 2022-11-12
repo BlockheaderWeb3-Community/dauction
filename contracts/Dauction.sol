@@ -472,6 +472,16 @@ contract Dauction is ReentrancyGuard {
      
     }
 
+    function getBid(address nftAddress, uint256 tokenId, address bidder)
+        public
+        view
+        returns (Bid memory)
+    {
+        Auction storage auction = auctions[nftAddress][tokenId];
+        require(auction.bidders.length != 0, "no bids");
+        return auction.bids[bidder];
+    }
+
     function getBidHash(
         address nftAddress,
         uint256 tokenId,
