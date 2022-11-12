@@ -114,6 +114,17 @@ contract Dauction is ReentrancyGuard {
         deployer = msg.sender;
     }
 
+     /**
+     * @dev anyone can create auction
+     * @param _nftAddress address of the auctioned NFT
+     * @param _tokenId unique ID of the auctioned NFT asset
+     * @param _minBidPrice minimum threshold amount for the auctioned NFT
+     * @param _startTime time of commencement of bid
+     * @param _endTime expected time an auction should end
+     * @param _revealDuration valid period within which all bidders must reveal their bid
+
+     */
+
     function createAuction(
         address _nftAddress,
         uint256 _tokenId,
@@ -160,6 +171,14 @@ contract Dauction is ReentrancyGuard {
         });
     }
 
+    /**
+     * @dev anyone except deployer and auctioneer can create bid 
+     * @param nftContractAddress address of the auctioned NFT
+     * @param tokenId unique ID of the auctioned NFT asset
+     * @param bidCommitment unique hash of a given bid
+     * @param bidToken address of the token user intends to bid with
+
+     */
     function createBid(
         address nftContractAddress,
         uint256 tokenId,
@@ -206,6 +225,13 @@ contract Dauction is ReentrancyGuard {
         );
     }
 
+    /**
+     * @dev allows only bidder can reveal bid
+     * @param nftAddress address of the auctioned NFT
+     * @param tokenId unique ID of the auctioned NFT asset
+     * @param bidValue user-specified bid amount
+     * @param salt unique hash added to conseal bid commitment
+     */
     function revealBid(
         address nftAddress,
         uint256 tokenId,
