@@ -502,6 +502,12 @@ describe('Dauction Marketplace', async () => {
       const { amountBidded } = await dauction.getBid(nftContract.address, 1, addr2.address)
       expect(amountBidded).to.eq(addr2BidValue)
 
+      const addr2RevealHash = unveilHashCommitment(addr2.address, hashCommitmentParams(addr2BidValue, createSalt(addr2Salt)), mockWETH.address)
+
+        // check emitted event BidReveal 
+        await expect(dauction.connect(addr2).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt)))
+          .to.emit(dauction, "BidRevealed")
+          .withArgs(nftContract.address, 1, addr2RevealHash, addr2.address, createSalt(addr2Salt), addr2BidValue);
     })
   })
 })
