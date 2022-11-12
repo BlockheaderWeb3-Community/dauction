@@ -94,6 +94,7 @@ contract Dauction is ReentrancyGuard {
     // instantiate the constructor with LINK, WETH, WBTC and USDT addresses
 
     BidTokens[] public bidTokenParamsArray;
+    address deployer;
 
     constructor(BidTokens[] memory bidTokensArray, address _USDT) {
         BidTokens memory bidTokensMemoryArray;
@@ -111,6 +112,7 @@ contract Dauction is ReentrancyGuard {
         }
         bidTokens.push(bidTokensMemoryArray);
         USDT = _USDT;
+        deployer = msg.sender;
     }
 
     function createAuction(
@@ -169,6 +171,8 @@ contract Dauction is ReentrancyGuard {
             "non-existent auction item"
         );
 
+        require(msg.sender != deployer, "deployer cannot bid");
+
         require(bidCommitment != bytes32(0), "zero bid commitment");
 
         require(
@@ -181,10 +185,10 @@ contract Dauction is ReentrancyGuard {
 		require(block.timestamp >= auction.startTime, "Auction has not started" );
         require(msg.sender != auction.owner, "auction seller cannot bid");
 
-        require(auction.endTime >= block.timestamp, "auction is finished");
+        require(auction.endTime >= block.timestamp, "auction has ended");
 
         Bid storage bid = auction.bids[msg.sender];
-		require(bid.bidCommitHash == bytes32(0), "BidCommithash has been initialized");
+		require(bid.bidCommitHash == bytes32(0), "initialized bidCommitment");
 
         bid.bidCommitHash = _hashBidAmount(msg.sender, bidCommitment, bidToken); // hash the bid
 
