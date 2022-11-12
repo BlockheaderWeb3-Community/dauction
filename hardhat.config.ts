@@ -2,7 +2,9 @@ require("dotenv").config()
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 const { PRIVATE_KEY, GOERLI_API_KEY, ETHERSCAN_KEY } = process.env
-const block1 = 7929752
+const block1 = 7940053
+
+
 
 const config: HardhatUserConfig = {
   solidity: "0.8.17",
@@ -14,6 +16,7 @@ const config: HardhatUserConfig = {
       }
 
     },
+    
     goerli: {
       url: GOERLI_API_KEY,
       accounts: [`0x${PRIVATE_KEY}`]

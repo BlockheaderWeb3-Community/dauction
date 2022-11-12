@@ -62,17 +62,16 @@ contract Dauction is ReentrancyGuard {
         address seller,
         uint256 minBidPrice,
         uint256 startTime,
-        uint256 endTime, 
-        uint256 revealDuration, 
+        uint256 endTime,
+        uint256 revealDuration,
         uint256 auctionCreatedAt
     );
 
     event BidCreated(
         address nftContractAddress,
         uint256 tokenId,
-        bytes32 bidCommitment, 
+        bytes32 bidCommitment,
         uint256 biddedAt
-
     );
 
     event BidRevealed(
@@ -155,8 +154,8 @@ contract Dauction is ReentrancyGuard {
             seller: msg.sender,
             minBidPrice: _minBidPrice,
             startTime: auction.startTime,
-            endTime: _endTime, 
-            revealDuration: _revealDuration, 
+            endTime: _endTime,
+            revealDuration: _revealDuration,
             auctionCreatedAt: block.timestamp
         });
     }
@@ -196,12 +195,15 @@ contract Dauction is ReentrancyGuard {
 
         bid.bidCommitHash = _hashBidAmount(msg.sender, bidCommitment, bidToken); // hash the bid
 
-
-
         bid.bidToken = bidToken;
         auction.bidders.push(msg.sender);
 
-        emit BidCreated(nftContractAddress, tokenId, bidCommitment, block.timestamp);
+        emit BidCreated(
+            nftContractAddress,
+            tokenId,
+            bidCommitment,
+            block.timestamp
+        );
     }
 
     function revealBid(
@@ -215,6 +217,12 @@ contract Dauction is ReentrancyGuard {
 
         require(block.timestamp >= auction.endTime, "auction not ended yet");
 
+        require(
+            block.timestamp >= auction.endTime &&
+                block.timestamp <= auction.revealDuration,
+            "not in reveal phase"
+        );
+
         Bid storage bid = auction.bids[msg.sender];
         require(bid.bidCommitHash != bytes32(0), "no bid commitment");
         address bidToken = bid.bidToken;
@@ -226,11 +234,6 @@ contract Dauction is ReentrancyGuard {
         require(
             IERC20(bidToken).allowance(msg.sender, address(this)) >= bidValue,
             "low token allowance"
-        );
-        require(
-            block.timestamp >= auction.endTime &&
-                block.timestamp <= auction.revealDuration,
-            "not in reveal phase"
         );
 
         bytes32 commitmentHash = keccak256(
@@ -263,9 +266,8 @@ contract Dauction is ReentrancyGuard {
 
     function deleteAuction(address _nftContractAddress, uint256 _tokenId)
         internal
-
     {
-         require(
+        require(
             msg.sender == IERC721(_nftContractAddress).ownerOf(_tokenId),
             "not owner"
         );
@@ -468,18 +470,15 @@ contract Dauction is ReentrancyGuard {
         address[] memory biddersArray = auctions[nftAddress][tokenId].bidders;
         require(biddersArray.length != 0, "no bids");
         return biddersArray;
-
-     
     }
 
-    function getBid(address nftAddress, uint256 tokenId, address bidder)
-        public
-        view
-        returns (Bid memory)
-    {
+    function getBid(
+        address nftAddress,
+        uint256 tokenId,
+        address bidder
+    ) public view returns (Bid memory) {
         Auction storage auction = auctions[nftAddress][tokenId];
         require(auction.bidders.length != 0, "no bids");
         return auction.bids[bidder];
     }
 }
-

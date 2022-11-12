@@ -7,11 +7,13 @@
   },
   "dependencies": {
     "@chainlink/contracts": "^0.5.1",
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.6",
     "@openzeppelin/contracts": "^4.7.3",
     "all": "^0.0.0"
   },
   "scripts": {
     "compile": "hardhat compile",
-    "test": "hardhat test"
+    "test": "hardhat test",
+    "hard_ref": "killall -9 node"
   }
 }

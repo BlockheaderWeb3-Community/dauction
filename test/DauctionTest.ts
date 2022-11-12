@@ -1,5 +1,7 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
+import { time } from "@nomicfoundation/hardhat-network-helpers";
+
 import { convertPriceToNumber } from "../utils/conversion.utils";
 import { WETH_USD, WBTC_USD, LINK_USD, ZERO_ADDRESS } from "../utils/price_feed_constants.utils"
 import { hexify, decodeBidHash, numToBytes32, testDecodeHash, hashCommitmentParams, createSalt, ZERO_BYTES_32, unveilHashCommitment } from "../utils/hex.utils"
@@ -382,32 +384,22 @@ describe('Dauction Marketplace', async () => {
         uint256 bidValue,
         bytes32 salt
      */
-    it("reverts non-bidder attempt to reveal bid", async () => {
+    it.only("reverts non-bidder attempt to reveal bid", async () => {
       const addr2Salt = 5000
-      const addr3Salt = 33300
-
       const addr2BidValue = 5
-      const addr3BidValue = 10
-      const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(1), setTime(4), setTime(6)] as const;
+
+      console.log("reveal duration__",await  setTime(3))
+      const AUCTION_PARAMS = [nftContract.address, 1, 5, await setTime(1), await setTime(2), await setTime(4)] as const;
       await nftContract.connect(addr1).approve(dauction.address, 1);
       await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
       increaseBlockTimestamp(1);
       await dauction.connect(addr2).createBid(nftContract.address, 1, hashCommitmentParams(addr2BidValue, createSalt(addr2Salt)), mockWETH.address);
-
-      // increaseBlockTimestamp(5); // reverted not in reveal phase
-      increaseBlockTimestamp(6); 
-
-      console.log("fast forward time__", increaseBlockTimestamp(5))
+      increaseBlockTimestamp(2);
 
       await mockWETH.connect(addr1).approve(dauction.address, parseEther('1000'))
-      // const addr2MockWethBal = await mockWETH.balanceOf(addr2.address)
-      // console.log("address 2 mock weth balance__", addr2MockWethBal)
-
       await expect(dauction.connect(addr1).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt))).
         to.be.revertedWith("no bid commitment");
-
     })
-
   })
 })
 
