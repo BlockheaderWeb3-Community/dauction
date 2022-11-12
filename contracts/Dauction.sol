@@ -263,7 +263,12 @@ contract Dauction is ReentrancyGuard {
 
     function deleteAuction(address _nftContractAddress, uint256 _tokenId)
         internal
+
     {
+         require(
+            msg.sender == IERC721(_nftContractAddress).ownerOf(_tokenId),
+            "not owner"
+        );
         Auction storage auction = auctions[_nftContractAddress][_tokenId];
 
         for (uint256 i; i < auction.bidders.length; i++) {
@@ -277,7 +282,6 @@ contract Dauction is ReentrancyGuard {
      * @param nftAddress address of the auctioned NFT
      * @param tokenId unique ID of the auctioned NFT asset
      */
-
     function settleAuction(address nftAddress, uint256 tokenId) external {
         Auction storage auction = auctions[nftAddress][tokenId];
         require(msg.sender == auction.owner, "not auction owner");
@@ -424,11 +428,6 @@ contract Dauction is ReentrancyGuard {
         bytes32 commitment,
         address bidToken
     ) private pure returns (bytes32) {
-        // hash value = account + vrf + commitment + nonce
-
-        // user input = bidValue + nonce => commitment
-        // commit = hashing(bidValue + nonce + vrf)
-
         return keccak256(abi.encodePacked(account, commitment, bidToken));
     }
 
@@ -466,9 +465,6 @@ contract Dauction is ReentrancyGuard {
         view
         returns (address[] memory)
     {
-        // address[] memory biddersArray = auctions[nftAddress][tokenId].bidsArray;
-        // Bid[] memory _bidsArray = auctions[nftAddress][tokenId];
-        // Auction memory auction = auctions[nftAddress][tokenId];
         address[] memory biddersArray = auctions[nftAddress][tokenId].bidders;
         require(biddersArray.length != 0, "no bids");
         return biddersArray;
@@ -487,5 +483,3 @@ contract Dauction is ReentrancyGuard {
     }
 }
 
-// TODOs:
-// - getter function for bid
