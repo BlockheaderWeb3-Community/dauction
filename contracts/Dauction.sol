@@ -86,7 +86,7 @@ contract Dauction is ReentrancyGuard {
     event AuctionUnsettled(
         address nftAddress,
         uint256 tokenId,
-        address owner, 
+        address owner,
         uint256 time
     );
     event AuctionSettled(
@@ -323,6 +323,10 @@ contract Dauction is ReentrancyGuard {
     function settleAuction(address nftAddress, uint256 tokenId) external {
         Auction storage auction = auctions[nftAddress][tokenId];
         require(msg.sender == auction.owner, "not auction owner");
+        require(
+            auction.auctionStatus == AuctionStatus.Revealed,
+            "bidder must reveal"
+        );
         // check that the reveal time has elapsed
         require(
             block.timestamp > auction.revealDuration,
@@ -359,6 +363,8 @@ contract Dauction is ReentrancyGuard {
                 )
             );
 
+            console.log("formatted price from dauction__ %s", formattedPrice);
+
             if (formattedPrice > highestBidAmount) {
                 console.log("formatted price %s", formattedPrice);
                 highestBidAmount = formattedPrice;
@@ -378,7 +384,6 @@ contract Dauction is ReentrancyGuard {
                 tokenId
             );
 
-     
             emit AuctionUnsettled(
                 nftAddress,
                 tokenId,
@@ -386,14 +391,23 @@ contract Dauction is ReentrancyGuard {
                 block.timestamp
             );
         } else {
+            // // transfer token to auction owner
+            // IERC20(selectedBidToken).safeTransferFrom(
+            //     highestBidder,
+            //     msg.sender,
+            //     bidAmount
+            // );
             // transfer token to auction owner
-            IERC20(selectedBidToken).safeTransferFrom(
+           IERC20(selectedBidToken).transferFrom(
                 highestBidder,
                 msg.sender,
                 bidAmount
             );
             console.log("transferred bid amount %s", bidAmount);
-            console.log("highest bid amount from dauction %s", highestBidAmount);
+            console.log(
+                "highest bid amount from dauction %s",
+                highestBidAmount
+            );
 
             // transfer NFT to highest bidder
             IERC721(nftAddress).safeTransferFrom(
@@ -451,6 +465,19 @@ contract Dauction is ReentrancyGuard {
         (int256 price, uint8 decimals) = getLatestPrice(_priceFeed);
         // return price / int256(10**decimals);
         return (bidAmount * uint256(price)) / (10**decimals);
+    }
+
+    function calculateBasePriceFromSettleAuction(
+        address _bidToken,
+        uint256 _bidAmount
+    ) public view returns (uint256) {
+        // Auction storage auction = auctions[nftAddress][tokenId];
+
+        uint256 formattedPrice = checkBidTokenUSDTEquivalence(_bidToken)
+            ? _bidAmount
+            : calculateBasePrice(bidTokenToPriceFeed[_bidToken], _bidAmount);
+
+        return formattedPrice;
     }
 
     function getBidTokens() public view returns (BidTokens[] memory) {
