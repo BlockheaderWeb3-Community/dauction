@@ -64,7 +64,6 @@ const concatParams = (bidAmount: number, salt: string | number) =>
 // recommended to have random 
 const createSalt = (num: string | number) => {
     const salt = ethers.utils.keccak256(ethers.utils.arrayify(num));
-    console.log("salt__created__", salt)
     return salt
 
 }

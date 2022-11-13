@@ -50,6 +50,7 @@ contract Dauction is ReentrancyGuard {
         Unassigned,
         Initiated,
         Bidded,
+        Revealed,
         Executed,
         Unexecuted
     }
@@ -81,6 +82,12 @@ contract Dauction is ReentrancyGuard {
         address bidder,
         bytes32 salt,
         uint256 bidValue
+    );
+    event AuctionUnsettled(
+        address nftAddress,
+        uint256 tokenId,
+        address owner, 
+        uint256 time
     );
     event AuctionSettled(
         address nftAddress,
@@ -114,7 +121,7 @@ contract Dauction is ReentrancyGuard {
         deployer = msg.sender;
     }
 
-     /**
+    /**
      * @dev anyone can create auction
      * @param _nftAddress address of the auctioned NFT
      * @param _tokenId unique ID of the auctioned NFT asset
@@ -213,6 +220,7 @@ contract Dauction is ReentrancyGuard {
         require(bid.bidCommitHash == bytes32(0), "initialized bidCommitment");
 
         bid.bidCommitHash = _hashBidAmount(msg.sender, bidCommitment, bidToken); // hash the bid
+        auction.auctionStatus = AuctionStatus.Bidded;
 
         bid.bidToken = bidToken;
         auction.bidders.push(msg.sender);
@@ -278,6 +286,7 @@ contract Dauction is ReentrancyGuard {
         );
 
         bid.amountBidded = bidValue;
+        auction.auctionStatus = AuctionStatus.Revealed;
 
         emit BidRevealed(
             nftAddress,
@@ -289,6 +298,11 @@ contract Dauction is ReentrancyGuard {
         );
     }
 
+    /**
+     * @dev allows only auctioneer to delete auction
+     * @param _nftContractAddress address of the auctioned NFT
+     * @param _tokenId unique ID of the auctioned NFT asset
+     */
     function deleteAuction(address _nftContractAddress, uint256 _tokenId)
         internal
     {
@@ -333,14 +347,20 @@ contract Dauction is ReentrancyGuard {
                 selectedBidToken
             )
                 ? bidAmount
-                : uint256(
-                    calculateBasePrice(
-                        bidTokenToPriceFeed[selectedBidToken],
-                        bidAmount
-                    )
+                : calculateBasePrice(
+                    bidTokenToPriceFeed[selectedBidToken],
+                    bidAmount
                 );
+            console.log(
+                "calculated token to usdt price__ %s",
+                calculateBasePrice(
+                    bidTokenToPriceFeed[selectedBidToken],
+                    bidAmount
+                )
+            );
 
             if (formattedPrice > highestBidAmount) {
+                console.log("formatted price %s", formattedPrice);
                 highestBidAmount = formattedPrice;
                 highestBidder = bidder;
             }
@@ -357,12 +377,13 @@ contract Dauction is ReentrancyGuard {
                 auction.owner,
                 tokenId
             );
-            emit AuctionSettled(
+
+     
+            emit AuctionUnsettled(
                 nftAddress,
                 tokenId,
                 msg.sender,
-                msg.sender,
-                highestBidAmount
+                block.timestamp
             );
         } else {
             // transfer token to auction owner
@@ -371,6 +392,8 @@ contract Dauction is ReentrancyGuard {
                 msg.sender,
                 bidAmount
             );
+            console.log("transferred bid amount %s", bidAmount);
+            console.log("highest bid amount from dauction %s", highestBidAmount);
 
             // transfer NFT to highest bidder
             IERC721(nftAddress).safeTransferFrom(
