@@ -332,21 +332,22 @@ contract Dauction is ReentrancyGuard {
             block.timestamp > auction.revealDuration,
             "not in reveal phase"
         );
+
         address bidder;
-        address selectedBidToken;
         uint256 bidAmount;
         uint256 highestBidAmount;
         address highestBidder;
         for (uint256 i; i < auction.bidders.length; i++) {
             bidder = auction.bidders[i];
             Bid memory bid = auction.bids[bidder];
-            selectedBidToken = bid.bidToken;
-            bidAmount = bid.amountBidded;
 
-            if (bidAmount == 0) {
+            if (bid.amountBidded == 0) {
                 continue;
             }
+            bidAmount = bid.amountBidded;
+            address selectedBidToken = bid.bidToken;
 
+            console.log("bid amount before tenary %s", bidAmount);
             uint256 formattedPrice = checkBidTokenUSDTEquivalence(
                 selectedBidToken
             )
@@ -355,13 +356,6 @@ contract Dauction is ReentrancyGuard {
                     bidTokenToPriceFeed[selectedBidToken],
                     bidAmount
                 );
-            console.log(
-                "calculated token to usdt price__ %s",
-                calculateBasePrice(
-                    bidTokenToPriceFeed[selectedBidToken],
-                    bidAmount
-                )
-            );
 
             console.log("formatted price from dauction__ %s", formattedPrice);
 
@@ -391,19 +385,16 @@ contract Dauction is ReentrancyGuard {
                 block.timestamp
             );
         } else {
-            // // transfer token to auction owner
-            // IERC20(selectedBidToken).safeTransferFrom(
-            //     highestBidder,
-            //     msg.sender,
-            //     bidAmount
-            // );
             // transfer token to auction owner
-           IERC20(selectedBidToken).transferFrom(
+            console.log("highest bidder__from dauc: %s", highestBidder);
+            // console.log("highest dauc test 1: %s", bidAmount);
+            Bid memory bid = auction.bids[highestBidder];
+            IERC20(bid.bidToken).transferFrom(
                 highestBidder,
                 msg.sender,
-                bidAmount
+                bid.amountBidded
             );
-            console.log("transferred bid amount %s", bidAmount);
+            // console.log("transferred bid amount %s", bidAmount);
             console.log(
                 "highest bid amount from dauction %s",
                 highestBidAmount
@@ -467,19 +458,6 @@ contract Dauction is ReentrancyGuard {
         return (bidAmount * uint256(price)) / (10**decimals);
     }
 
-    function calculateBasePriceFromSettleAuction(
-        address _bidToken,
-        uint256 _bidAmount
-    ) public view returns (uint256) {
-        // Auction storage auction = auctions[nftAddress][tokenId];
-
-        uint256 formattedPrice = checkBidTokenUSDTEquivalence(_bidToken)
-            ? _bidAmount
-            : calculateBasePrice(bidTokenToPriceFeed[_bidToken], _bidAmount);
-
-        return formattedPrice;
-    }
-
     function getBidTokens() public view returns (BidTokens[] memory) {
         return bidTokens;
     }
@@ -496,6 +474,14 @@ contract Dauction is ReentrancyGuard {
     {
         return _bidToken == USDT ? true : false;
     }
+
+    /**
+     * @dev generates a unique identity for a bidders commitment onchain
+     * @param account address of a given bid token
+     * @param commitment encrypted hash sent by bidder
+     * @param bidToken the specified bid token by bidder
+     * @return the hash of the passed in params
+     */
 
     function _hashBidAmount(
         address account,

@@ -40,7 +40,7 @@ contract NFTContract is ERC721URIStorage {
         _setTokenURI(
             totalMinted,
             "https://ipfs.io/ipfs/QmRn4Aaj4LMuunoJL3XNz92N1DwVdiesrvMJGymj26TnMF"
-        ); // totalMinted += 1; // 1
+        ); 
     }
 
     function getTokenURI(uint256 tokenId) public view returns (string memory) {
