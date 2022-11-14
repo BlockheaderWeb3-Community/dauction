@@ -1,12 +1,12 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
-
+import { BigNumber } from "ethers";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
+import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs"
+import { parseEther, formatEther } from "ethers/lib/utils";
 import { convertPriceToNumber } from "../utils/conversion.utils";
 import { WETH_USD, WBTC_USD, LINK_USD, ZERO_ADDRESS } from "../utils/price_feed_constants.utils"
 import { hashCommitmentParams, createSalt, ZERO_BYTES_32, unveilHashCommitment } from "../utils/hex.utils"
-import { parseEther, formatEther } from "ethers/lib/utils";
-import { utils, BigNumber } from "ethers";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { Dauction } from "../typechain-types/contracts/Dauction";
 import { Dauction__factory } from "../typechain-types/factories/contracts/Dauction__factory";
 import { MockToken } from "../typechain-types/contracts/MockToken";
@@ -563,6 +563,44 @@ describe('Dauction Marketplace', async () => {
         to.be.revertedWith("not in reveal phase")
     })
 
+
+    it("should transfer nft back to auctioneer when no bid exist at the elapse of the auction when auction is settled", async () => {
+      // deployer transfer 1k mockUSDT to addr4
+      await mockLINK.transfer(addr4.address, parseEther("1000"));
+
+      // deployer transfer 10k mockUSDT to addr5
+      await mockUSDT.transfer(addr5.address, parseEther("10000"));
+
+      const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(1), setTime(2), setTime(4)] as const;
+      await nftContract.connect(addr1).approve(dauction.address, 1);
+      await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
+
+      increaseBlockTimestamp(4)
+
+      await expect(dauction.connect(addr1).settleAuction(nftContract.address, 1))
+        .to.emit(dauction, "AuctionUnsettled")
+        .withArgs(nftContract.address, 1, addr1.address, anyValue);
+
+      expect(await nftContract.ownerOf(1)).to.eq(addr1.address)
+      // nft owner balance remains unchanged
+      expect(await mockWBTC.balanceOf(addr1.address)).to.eq(parseEther('10000'))
+      expect(await mockWETH.balanceOf(addr1.address)).to.eq(parseEther('10000'))
+      expect(await mockLINK.balanceOf(addr1.address)).to.eq(parseEther('10000'))
+      expect(await mockUSDT.balanceOf(addr1.address)).to.eq(parseEther('10000'))
+
+      // revert attempt to call getBid since no bid exists
+      await expect(dauction.getBid(nftContract.address, 1, addr2.address)).to.be.revertedWith("no bids")
+
+      // get auction details
+      const auctionDetails = await dauction.auctions(AUCTION_PARAMS[0], AUCTION_PARAMS[1])
+      console.log("auction details__", auctionDetails)
+      const { auctionStatus, owner } = auctionDetails
+      expect(owner).to.eq(addr1.address)
+      expect(auctionStatus).to.eq(5)
+
+    })
+
+
     it("should settle only based on revealed bids, determine highest bidders and settle auction accordingly", async () => {
       // deployer transfer 1k mockUSDT to addr4
       await mockLINK.transfer(addr4.address, parseEther("10000"));
@@ -609,12 +647,9 @@ describe('Dauction Marketplace', async () => {
       await mockUSDT.connect(addr5).approve(dauction.address, ethers.constants.MaxUint256)
 
 
-
       await dauction.connect(addr2).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt)) // addr2 reveals bid
       await dauction.connect(addr3).revealBid(nftContract.address, 1, addr3BidValue, createSalt(addr3Salt)) // addr3 reveals bid
       await dauction.connect(addr4).revealBid(nftContract.address, 1, addr4BidValue, createSalt(addr4Salt)) // addr4 reveals bid
-
-
 
       increaseBlockTimestamp(10)
 
@@ -679,9 +714,6 @@ describe('Dauction Marketplace', async () => {
       const addr4BidValue = parseEther('800')
       const addr5BidValue = parseEther('10000')
 
-      console.log("addr3 wbtc bal__", formatEther(await mockWBTC.balanceOf(addr3.address)))
-      console.log("addr3 wbtc bal__", formatEther(await mockWBTC.balanceOf(addr3.address)))
-
       const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(1), setTime(2), setTime(4)] as const;
       await nftContract.connect(addr1).approve(dauction.address, 1);
       await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
@@ -698,8 +730,6 @@ describe('Dauction Marketplace', async () => {
       await dauction.connect(addr4).createBid(nftContract.address, 1, hashCommitmentParams(addr4BidValue, createSalt(addr4Salt)), mockLINK.address);
       await dauction.connect(addr5).createBid(nftContract.address, 1, hashCommitmentParams(addr5BidValue, createSalt(addr5Salt)), mockUSDT.address);
       increaseBlockTimestamp(2)
-
-
 
       await mockWETH.connect(addr2).approve(dauction.address, ethers.constants.MaxUint256)
       await mockWBTC.connect(addr3).approve(dauction.address, ethers.constants.MaxUint256)
@@ -731,15 +761,13 @@ describe('Dauction Marketplace', async () => {
       console.log("formatted price from test__", formatEther(getFormattedPrice))
 
       const nftNewOwner = await nftContract.ownerOf(1)
-      console.log("nft new owner__", nftNewOwner)
-      console.log("addr1 check__", addr1.address)
-      console.log("addr2 check__", addr2.address)
-      console.log("addr3 check__", addr3.address)
+
 
       expect(nftNewOwner).to.eq(addr5.address)
 
       // auctioneer balance post auction settlement
       expect(await mockUSDT.balanceOf(addr1.address)).to.eq(parseEther('20000'))
+      expect(await mockUSDT.balanceOf(addr5.address)).to.eq(parseEther('0'))
 
 
       // get auction details

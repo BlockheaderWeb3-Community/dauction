@@ -323,10 +323,6 @@ contract Dauction is ReentrancyGuard {
     function settleAuction(address nftAddress, uint256 tokenId) external {
         Auction storage auction = auctions[nftAddress][tokenId];
         require(msg.sender == auction.owner, "not auction owner");
-        require(
-            auction.auctionStatus == AuctionStatus.Revealed,
-            "bidder must reveal"
-        );
         // check that the reveal time has elapsed
         require(
             block.timestamp > auction.revealDuration,
@@ -372,6 +368,7 @@ contract Dauction is ReentrancyGuard {
             highestBidAmount < auction.minBidPrice
         ) {
             auction.owner = payable(msg.sender);
+            auction.auctionStatus = AuctionStatus.Unexecuted;
             IERC721(nftAddress).safeTransferFrom(
                 address(this),
                 auction.owner,
@@ -478,7 +475,7 @@ contract Dauction is ReentrancyGuard {
     /**
      * @dev generates a unique identity for a bidders commitment onchain
      * @param account address of a given bid token
-     * @param commitment encrypted hash sent by bidder
+     * @param commitment encrypted hash by bidder
      * @param bidToken the specified bid token by bidder
      * @return the hash of the passed in params
      */
