@@ -1,16 +1,12 @@
 import { time } from "@nomicfoundation/hardhat-network-helpers";
 import { ethers } from "hardhat";
-export const setTime = async (hours: number = 0) => {
-  console.log("checking time from utils__", await time.latest())
-  return hours === 0 ? await time.latest() : await time.latest() + (hours * 60 * 60) 
-  
-}
+export const setTime = async (hours: number = 0) => hours === 0 ? await time.latest() : await time.latest() + (hours * 60 * 60)
 
 export const increaseBlockTimestamp = async (hours: number) => {
-    const provider = ethers.provider
-    await provider.send("evm_increaseTime", [hours * 3600]);
-    await provider.send("evm_mine", []);
-  };
+  const provider = ethers.provider
+  await provider.send("evm_increaseTime", [hours * 3600]);
+  await provider.send("evm_mine", []);
+};
 
 
 
