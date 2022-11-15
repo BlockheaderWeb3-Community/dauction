@@ -15,6 +15,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "hard_ref": "killall -9 node"
+    "hard_ref": "killall -9 node", 
+    "deploy_goerli": "hardhat run --network goerli scripts/deploy.ts"
   }
 }

@@ -15,6 +15,13 @@ This is a decentralized auction project that allow users to auction their assets
 - [x] Bidders can only create bid for a valid token for which auction has been successfully created 
 - [x] Bidders cannot withdraw bid until the end of the auction
 
+### Deployed Goerli Contracts
+- (MockUSDT)[https://goerli.etherscan.io/token/0x289bc9A76ADbF81746db9A8e99DdF6776d41D84b]
+- (MockLINK)[https://goerli.etherscan.io/token/0xda469e02e3d939c3ffafa5e8bf9569ccffe8da0d]
+- (MockWETH)[https://goerli.etherscan.io/token/0x5db5a283bdebf69a9e779e7fef7d6616b02dffe6]
+- (MockWBTC)[https://goerli.etherscan.io/token/0x5df75ff8fe3fcbbf056db82ad5b6c96aa5044964]
+- (DauctionNFT)[https://goerli.etherscan.io/address/0x17d76D5776505eD9F60030eb8744B88A96ff9e84]
+- (Dauction Marketplace Contract)[https://goerli.etherscan.io/address/0xcef7ac5c9a677db855f5a216f3c93f9e7c8cd78a]
 
 
 ### Test
