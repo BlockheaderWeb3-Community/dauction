@@ -1,5 +1,5 @@
 import { parseEther, formatEther } from  "ethers/lib/utils";
-import { BigNumberish } from "ethers";
+import { BigNumberish,BigNumber } from "ethers";
 
 
 
@@ -8,5 +8,5 @@ const convertPriceToNumber = (price: number, decimals: number): Number =>
     Number((price / Math.pow(10, decimals)).toFixed(2));
 
 
-
-export { convertPriceToNumber }
+const toBN = (value: BigNumberish):BigNumber  => BigNumber.from(value)
+export { convertPriceToNumber, toBN }
