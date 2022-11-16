@@ -321,7 +321,6 @@ contract Dauction is ReentrancyGuard {
             bidAmount = bid.amountBidded;
             address selectedBidToken = bid.bidToken;
 
-            console.log("bid amount before tenary %s", bidAmount);
             uint256 formattedPrice = checkBidTokenUSDTEquivalence(
                 selectedBidToken
             )
@@ -331,10 +330,7 @@ contract Dauction is ReentrancyGuard {
                     bidAmount
                 );
 
-            console.log("formatted price from dauction__ %s", formattedPrice);
-
             if (formattedPrice > highestBidAmount) {
-                console.log("formatted price %s", formattedPrice);
                 highestBidAmount = formattedPrice;
                 highestBidder = bidder;
             }
@@ -363,20 +359,12 @@ contract Dauction is ReentrancyGuard {
             );
         } else {
             // transfer token to auction owner
-            console.log("highest bidder__from dauc: %s", highestBidder);
-            // console.log("highest dauc test 1: %s", bidAmount);
             Bid memory bid = auction.bids[highestBidder];
             IERC20(bid.bidToken).transferFrom(
                 highestBidder,
                 msg.sender,
                 bid.amountBidded
             );
-            // console.log("transferred bid amount %s", bidAmount);
-            console.log(
-                "highest bid amount from dauction %s",
-                highestBidAmount
-            );
-
             // transfer NFT to highest bidder
             IERC721(nftAddress).safeTransferFrom(
                 address(this),
