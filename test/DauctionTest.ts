@@ -292,11 +292,11 @@ describe('Dauction Marketplace', async () => {
 
     it("should revert bid on unauctioned NFT", async () => {
 
-      const bidValue = 5
+      const bidValue = 5;
 
-      const BID_PARAMS = [dauction.address, 1, hashCommitmentParams(bidValue, createSalt(4555)), mockWETH.address] as const
+      const BID_PARAMS = [dauction.address, 1, hashCommitmentParams(bidValue, createSalt(4555)), mockWETH.address] as const;
 
-      expect(dauction.connect(addr2).createBid(...BID_PARAMS)).to.be.reverted // revert addr2 attempt to create bid on unauctioned NFT
+      await expect(dauction.connect(addr2).createBid(...BID_PARAMS)).to.be.revertedWith("non-existent auction item"); // revert addr2 attempt to create bid on unauctioned NFT
 
     })
 
@@ -309,7 +309,7 @@ describe('Dauction Marketplace', async () => {
         to.be.revertedWith("invalid bid token");
     });
 
-    it("reverts attempt to bid with 0 bytes32", async () => {
+    it("reverts attempt to bid with 0 bid commitment", async () => {
 
       const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(1), setTime(5), setTime(6)] as const;
       await nftContract.connect(addr1).approve(dauction.address, 1);
@@ -332,10 +332,19 @@ describe('Dauction Marketplace', async () => {
       await nftContract.connect(addr1).approve(dauction.address, 1);
       await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
 
-
       await expect(dauction.connect(addr2).createBid(nftContract.address, 1, hashCommitmentParams(5, createSalt(5000)), mockWETH.address)).
         to.be.revertedWith("auction has not started");
     });
+
+    it("reverts auction owner attempt to bid", async() => {
+      const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(2), setTime(5), setTime(6)] as const;
+      await nftContract.connect(addr1).approve(dauction.address, 1);
+      await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
+      increaseBlockTimestamp(3);
+
+      await expect(dauction.connect(addr1).createBid(nftContract.address, 1, hashCommitmentParams(5, createSalt(5000)), mockWETH.address)).
+        to.be.revertedWith("auction seller cannot bid");
+    })
 
     it("reverts attempt to create bid when the auction has ended", async () => {
       const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(2), setTime(5), setTime(6)] as const;
@@ -379,8 +388,8 @@ describe('Dauction Marketplace', async () => {
       increaseBlockTimestamp(1);
       await dauction.connect(addr2).createBid(nftContract.address, 1, hashCommitmentParams(addr2BidValue, createSalt(addr2Salt)), mockWETH.address);
       await dauction.connect(addr3).createBid(nftContract.address, 1, hashCommitmentParams(addr3BidValue, createSalt(addr3Salt)), mockLINK.address);
-
-      const biddersArray = await dauction.getBidders(nftContract.address, 1)
+      expect(await dauction.getAuctionStatus(nftContract.address, 1)).to.eq("Bidded");
+      const biddersArray = await dauction.getBidders(nftContract.address, 1);
       expect(biddersArray[0]).to.eq(addr2.address)
       expect(biddersArray[1]).to.eq(addr3.address)
 
@@ -395,6 +404,19 @@ describe('Dauction Marketplace', async () => {
       expect(addr3BidToken).to.eq(mockLINK.address)
       expect(addr3BidHash).to.eq(addr3UnveilHash)
     });
+
+    it.only("emits BidCreated event after creating a bid", async() => {
+      const addr2Salt = 5000
+      const addr2BidValue = 5
+      const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(1), setTime(4), setTime(6)] as const;
+      await nftContract.connect(addr1).approve(dauction.address, 1);
+      await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
+      increaseBlockTimestamp(2);
+      const bidCommitment = hashCommitmentParams(addr2BidValue, createSalt(addr2Salt))
+      const tx = dauction.connect(addr2).createBid(nftContract.address, 1,bidCommitment , mockWETH.address);
+      await expect(tx).to.emit(dauction, "BidCreated")
+      .withArgs(nftContract.address,1, bidCommitment, await setTime(2) + 1 )
+    })
   })
 
   describe("Reveal Bid", async () => {
@@ -405,6 +427,18 @@ describe('Dauction Marketplace', async () => {
         uint256 bidValue,
         bytes32 salt
      */
+    it("reverts when bid value is 0", async() => {
+      const addr2BidValue = 0;
+      await expect(dauction.connect(addr1).revealBid(nftContract.address, 1, addr2BidValue, createSalt(20))).
+        to.be.revertedWith("zero bid value");
+    });
+
+    it("reverts when bid is being revealed for an auction that doesn't exist", async() => {
+      const addr2BidValue = 10;
+      await expect(dauction.connect(addr1).revealBid(nftContract.address, 1, addr2BidValue, createSalt(20))).
+        to.be.revertedWith("not in reveal phase");
+    });
+
     it("reverts non-bidder attempt to reveal bid", async () => {
       const addr2Salt = 5000
       const addr2BidValue = 5
@@ -413,11 +447,7 @@ describe('Dauction Marketplace', async () => {
       const AUCTION_PARAMS = [nftContract.address, 1, 5, await setTime(1), await setTime(2), await setTime(4)] as const;
       await nftContract.connect(addr1).approve(dauction.address, 1);
       await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
-      increaseBlockTimestamp(1);
-      await dauction.connect(addr2).createBid(nftContract.address, 1, hashCommitmentParams(addr2BidValue, createSalt(addr2Salt)), mockWETH.address);
-      increaseBlockTimestamp(2);
-
-      await mockWETH.connect(addr1).approve(dauction.address, parseEther('1000'))
+      increaseBlockTimestamp(3);
       await expect(dauction.connect(addr1).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt))).
         to.be.revertedWith("no bid commitment");
     })
@@ -503,7 +533,7 @@ describe('Dauction Marketplace', async () => {
     })
 
 
-    it("should successfully reveal bid", async () => {
+    it.only("should successfully reveal bid", async () => {
       const addr2Salt = 5000
 
       const addr2BidValue = parseEther('5')
@@ -512,25 +542,25 @@ describe('Dauction Marketplace', async () => {
       await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
       increaseBlockTimestamp(1);
       await dauction.connect(addr2).createBid(nftContract.address, 1, hashCommitmentParams(addr2BidValue, createSalt(addr2Salt)), mockWETH.address);
-      increaseBlockTimestamp(2)
+      increaseBlockTimestamp(2);
 
-      await mockWETH.connect(addr2).approve(dauction.address, addr2BidValue)
-      console.log("allowance for dauction__", formatEther(await mockWETH.allowance(addr2.address, dauction.address)))
+      await mockWETH.connect(addr2).approve(dauction.address, addr2BidValue);
+      console.log("allowance for dauction__", formatEther(await mockWETH.allowance(addr2.address, dauction.address)));
 
 
-      await dauction.connect(addr2).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt))
+      await dauction.connect(addr2).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt));
 
-      const { amountBidded } = await dauction.getBid(nftContract.address, 1, addr2.address)
-      expect(amountBidded).to.eq(addr2BidValue)
-
-      const addr2RevealHash = unveilHashCommitment(addr2.address, hashCommitmentParams(addr2BidValue, createSalt(addr2Salt)), mockWETH.address)
+      const { amountBidded } = await dauction.getBid(nftContract.address, 1, addr2.address);
+      expect(amountBidded).to.eq(addr2BidValue);
+      expect(await dauction.getAuctionStatus(nftContract.address, 1)).to.eq("Initiated");
+      const addr2RevealHash = unveilHashCommitment(addr2.address, hashCommitmentParams(addr2BidValue, createSalt(addr2Salt)), mockWETH.address);
 
       // check emitted event BidReveal 
       await expect(dauction.connect(addr2).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt)))
-        .to.emit(dauction, "BidRevealed")
+        .to.emit(dauction, "BidRevealed");
         .withArgs(nftContract.address, 1, addr2RevealHash, addr2.address, createSalt(addr2Salt), addr2BidValue);
-    })
-  })
+    });
+  });
 
 
 
