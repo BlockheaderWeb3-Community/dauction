@@ -533,7 +533,7 @@ describe('Dauction Marketplace', async () => {
     })
 
 
-    it.only("should successfully reveal bid", async () => {
+    it("should successfully reveal bid", async () => {
       const addr2Salt = 5000
 
       const addr2BidValue = parseEther('5')
@@ -552,12 +552,12 @@ describe('Dauction Marketplace', async () => {
 
       const { amountBidded } = await dauction.getBid(nftContract.address, 1, addr2.address);
       expect(amountBidded).to.eq(addr2BidValue);
-      expect(await dauction.getAuctionStatus(nftContract.address, 1)).to.eq("Initiated");
+      expect(await dauction.getAuctionStatus(nftContract.address, 1)).to.eq("Revealed");
       const addr2RevealHash = unveilHashCommitment(addr2.address, hashCommitmentParams(addr2BidValue, createSalt(addr2Salt)), mockWETH.address);
 
       // check emitted event BidReveal 
       await expect(dauction.connect(addr2).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt)))
-        .to.emit(dauction, "BidRevealed");
+        .to.emit(dauction, "BidRevealed")
         .withArgs(nftContract.address, 1, addr2RevealHash, addr2.address, createSalt(addr2Salt), addr2BidValue);
     });
   });
@@ -620,7 +620,7 @@ describe('Dauction Marketplace', async () => {
       await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
 
       increaseBlockTimestamp(4)
-
+      expect(await nftContract.ownerOf(1)).to.eq(dauction.address)
       await expect(dauction.connect(addr1).settleAuction(nftContract.address, 1))
         .to.emit(dauction, "AuctionUnsettled")
         .withArgs(nftContract.address, 1, addr1.address, anyValue);
@@ -639,8 +639,8 @@ describe('Dauction Marketplace', async () => {
       const auctionDetails = await dauction.auctions(AUCTION_PARAMS[0], AUCTION_PARAMS[1])
       console.log("auction details__", auctionDetails)
       const { auctionStatus, owner } = auctionDetails
-      expect(owner).to.eq(addr1.address)
-      expect(auctionStatus).to.eq(5)
+      expect(owner).to.eq(ZERO_ADDRESS)
+      expect(auctionStatus).to.eq(0);
 
     })
 

@@ -401,8 +401,6 @@ contract Dauction is ReentrancyGuard {
                 tokenId
             );
 
-            deleteAuction(nftAddress, tokenId);
-
             // emit SettleAuction event
             emit AuctionSettled(
                 nftAddress,
@@ -412,6 +410,8 @@ contract Dauction is ReentrancyGuard {
                 highestBidAmount
             );
         }
+        deleteAuction(nftAddress, tokenId);
+
     }
 
     /********************************************************************************************/
@@ -506,8 +506,10 @@ contract Dauction is ReentrancyGuard {
         } else if (auctionState == 2) {
             _auctionStatus = "Bidded";
         } else if (auctionState == 3) {
-            _auctionStatus = "Executed";
+            _auctionStatus = "Revealed";
         } else if (auctionState == 4) {
+            _auctionStatus = "Executed";
+        } else if (auctionState == 5) {
             _auctionStatus = "Unexecuted";
         }
     }
