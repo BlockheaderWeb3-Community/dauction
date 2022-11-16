@@ -287,6 +287,7 @@ describe('Dauction Marketplace', async () => {
     })
 
     it("reverts when the bid token is invalid", async () => {
+      console.log("hexify decimal__", createSalt(18))
 
       const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(1), setTime(5), setTime(6)] as const;
       await nftContract.connect(addr1).approve(dauction.address, 1);
@@ -489,7 +490,7 @@ describe('Dauction Marketplace', async () => {
     })
 
 
-    it("should successfully reveal bid", async () => {
+    it.only("should successfully reveal bid", async () => {
       const addr2Salt = 5000
 
       const addr2BidValue = parseEther('5')
@@ -497,7 +498,11 @@ describe('Dauction Marketplace', async () => {
       await nftContract.connect(addr1).approve(dauction.address, 1);
       await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
       increaseBlockTimestamp(1);
+      
       await dauction.connect(addr2).createBid(nftContract.address, 1, hashCommitmentParams(addr2BidValue, createSalt(addr2Salt)), mockWETH.address);
+
+      const hash1 = hashCommitmentParams(100, createSalt(100))
+      console.log("hash 1__", hash1 )
       increaseBlockTimestamp(2)
 
       await mockWETH.connect(addr2).approve(dauction.address, addr2BidValue)
