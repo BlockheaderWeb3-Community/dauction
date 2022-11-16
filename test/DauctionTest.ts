@@ -244,7 +244,7 @@ describe('Dauction Marketplace', async () => {
       .to.be.revertedWith("not owner");
     });
 
-    it("should successfully create auction and emit proper event", async () => {
+    it.only("should successfully create auction and emit proper event", async () => {
       /* 
       CREATE ACTION PARAMS
         address nftContractAddress,
@@ -254,9 +254,9 @@ describe('Dauction Marketplace', async () => {
         endTime, 
         revealDuration
     */
-
+      const setMinBid = ethers.utils.parseEther('6')
       // array containing create auction params
-      const AUCTION_PARAMS = [nftContract.address, 1, 5, await setTime(2), 
+      const AUCTION_PARAMS = [nftContract.address, 1, setMinBid , await setTime(2), 
         await setTime(5), await setTime(6)] as const
       const [,,, start, end, revealTime] =  AUCTION_PARAMS
       // approve dauction contract to use NFT
@@ -265,12 +265,15 @@ describe('Dauction Marketplace', async () => {
       // nft owner create auction transaction
       const tx = dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
       await expect (tx).to.emit(dauction, "AuctionCreated").withArgs(nftContract.address, toBN(1),
-        addr1.address, toBN(5), start, end, revealTime, await setTime() + 1);
+        addr1.address, toBN(setMinBid), start, end, revealTime, await setTime() + 1);
       // get auction details
       const auctionDetails = await dauction.auctions(AUCTION_PARAMS[0], AUCTION_PARAMS[1]);
+      console.log("auction details__", auctionDetails)
       const { startTime, minBidPrice, endTime, revealDuration, auctionStatus, owner } = auctionDetails;
 
-      expect(minBidPrice).to.eq(5); // expect minBidPrice to equal 5
+      console.log("returned__min bid price__", minBidPrice)
+
+      expect(minBidPrice).to.eq(setMinBid); // expect minBidPrice to equal 5
       expect(auctionStatus).to.eq(1); // expect auctionStatus to equal 1 based on the set enum state
       expect((startTime)).to.eq(start); // expect start time to eq passed in start time
       expect((endTime)).to.eq(end); // expect start time to eq passed in end time
