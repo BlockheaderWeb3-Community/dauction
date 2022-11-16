@@ -1,7 +1,6 @@
 //SPDX-License-Identifier: Unlicense
 pragma solidity 0.8.17;
 
-import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -25,8 +24,7 @@ contract Dauction is ReentrancyGuard {
     uint256 public constant MIN_AUCTION_PERIOD = 60 minutes;
 
     address immutable USDT;
-    // mapping(ui)
-
+    
     // bidder's props
     struct Bid {
         uint256 amountBidded;
