@@ -244,7 +244,7 @@ describe('Dauction Marketplace', async () => {
         .to.be.revertedWith("not owner");
     });
 
-    it("should successfully create auction and emit proper event", async () => {
+    it.only("should successfully create auction and emit proper event", async () => {
       /* 
       CREATE ACTION PARAMS
         address nftContractAddress,
@@ -254,9 +254,9 @@ describe('Dauction Marketplace', async () => {
         endTime, 
         revealDuration
     */
-
+      const setMinBid = ethers.utils.parseEther('6')
       // array containing create auction params
-      const AUCTION_PARAMS = [nftContract.address, 1, 5, await setTime(2),
+      const AUCTION_PARAMS = [nftContract.address, 1, setMinBid , await setTime(2),
       await setTime(5), await setTime(6)] as const
       const [, , , start, end, revealTime] = AUCTION_PARAMS
       // approve dauction contract to use NFT
@@ -264,13 +264,16 @@ describe('Dauction Marketplace', async () => {
 
       // nft owner create auction transaction
       const tx = dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
-      await expect(tx).to.emit(dauction, "AuctionCreated").withArgs(nftContract.address, toBN(1),
-        addr1.address, toBN(5), start, end, revealTime, await setTime() + 1);
+      await expect (tx).to.emit(dauction, "AuctionCreated").withArgs(nftContract.address, toBN(1),
+        addr1.address, toBN(setMinBid), start, end, revealTime, await setTime() + 1);
       // get auction details
       const auctionDetails = await dauction.auctions(AUCTION_PARAMS[0], AUCTION_PARAMS[1]);
+      console.log("auction details__", auctionDetails)
       const { startTime, minBidPrice, endTime, revealDuration, auctionStatus, owner } = auctionDetails;
 
-      expect(minBidPrice).to.eq(5); // expect minBidPrice to equal 5
+      console.log("returned__min bid price__", minBidPrice)
+
+      expect(minBidPrice).to.eq(setMinBid); // expect minBidPrice to equal 5
       expect(auctionStatus).to.eq(1); // expect auctionStatus to equal 1 based on the set enum state
       expect((startTime)).to.eq(start); // expect start time to eq passed in start time
       expect((endTime)).to.eq(end); // expect start time to eq passed in end time
@@ -301,6 +304,7 @@ describe('Dauction Marketplace', async () => {
     })
 
     it("reverts when the bid token is invalid", async () => {
+      console.log("hexify decimal__", createSalt(18))
 
       const AUCTION_PARAMS = [nftContract.address, 1, 5, setTime(1), setTime(5), setTime(6)] as const;
       await nftContract.connect(addr1).approve(dauction.address, 1);
@@ -541,8 +545,9 @@ describe('Dauction Marketplace', async () => {
       await nftContract.connect(addr1).approve(dauction.address, 1);
       await dauction.connect(addr1).createAuction(...AUCTION_PARAMS);
       increaseBlockTimestamp(1);
+      
       await dauction.connect(addr2).createBid(nftContract.address, 1, hashCommitmentParams(addr2BidValue, createSalt(addr2Salt)), mockWETH.address);
-      increaseBlockTimestamp(2);
+      increaseBlockTimestamp(2)
 
       await mockWETH.connect(addr2).approve(dauction.address, addr2BidValue);
       console.log("allowance for dauction__", formatEther(await mockWETH.allowance(addr2.address, dauction.address)));
@@ -634,6 +639,8 @@ describe('Dauction Marketplace', async () => {
         const auctionDetails = await dauction.auctions(AUCTION_PARAMS[0], AUCTION_PARAMS[1]);
         console.log("auction details__", auctionDetails)
         const { startTime, minBidPrice, endTime, revealDuration, auctionStatus, owner } = auctionDetails
+
+      // reset auction struct
         expect(owner).to.eq(ZERO_ADDRESS);
         expect(startTime).to.eq(0)
         expect(minBidPrice).to.eq(0)

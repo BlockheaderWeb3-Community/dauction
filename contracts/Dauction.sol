@@ -11,6 +11,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract Dauction is ReentrancyGuard {
     using SafeERC20 for IERC20;
+    // @dev rep
     struct BidTokens {
         address token;
         address priceFeed;
@@ -19,7 +20,6 @@ contract Dauction is ReentrancyGuard {
 
     BidTokens[] public bidTokens;
 
-    // uint256 public activeAuctions;
     uint256 public totalAuctions;
 
     uint256 public constant MIN_AUCTION_PERIOD = 60 minutes;
@@ -104,20 +104,11 @@ contract Dauction is ReentrancyGuard {
     address deployer;
 
     constructor(BidTokens[] memory bidTokensArray, address _USDT) {
-        BidTokens memory bidTokensMemoryArray;
+        // BidTokens memory bidTokensMemoryArray;
         for (uint256 i; i < bidTokensArray.length; i++) {
             bidTokenToPriceFeed[bidTokensArray[i].token] = bidTokensArray[i]
                 .priceFeed;
-
-            console.log("token %s", bidTokensArray[i].token);
-            console.log("name constructor %s", bidTokensArray[i].priceFeed);
-
-            bidTokensMemoryArray = BidTokens({
-                token: bidTokensArray[i].token,
-                priceFeed: bidTokensArray[i].priceFeed
-            });
         }
-        bidTokens.push(bidTokensMemoryArray);
         USDT = _USDT;
         deployer = msg.sender;
     }
@@ -142,10 +133,7 @@ contract Dauction is ReentrancyGuard {
         uint256 _revealDuration
     ) public nonReentrant {
         IERC721 nftContract = IERC721(_nftAddress);
-        require(
-            msg.sender == nftContract.ownerOf(_tokenId),
-            "not owner"
-        );
+        require(msg.sender == nftContract.ownerOf(_tokenId), "not owner");
         require(_startTime >= block.timestamp, "invalid auction start time");
         require(_minBidPrice > 0, "auction price cannot be zero");
         require(
@@ -194,10 +182,7 @@ contract Dauction is ReentrancyGuard {
         address bidToken
     ) external nonReentrant {
         Auction storage auction = auctions[nftContractAddress][tokenId];
-        require(
-            auction.owner != address(0),
-            "non-existent auction item"
-        );
+        require(auction.owner != address(0), "non-existent auction item");
 
         require(msg.sender != deployer, "deployer cannot bid");
 
@@ -276,11 +261,7 @@ contract Dauction is ReentrancyGuard {
             bidToken
         );
 
-        require(
-            verifyCommitHash ==
-                bid.bidCommitHash,
-            "invalid bid hash"
-        );
+        require(verifyCommitHash == bid.bidCommitHash, "invalid bid hash");
 
         bid.amountBidded = bidValue;
         auction.auctionStatus = AuctionStatus.Revealed;
@@ -301,10 +282,10 @@ contract Dauction is ReentrancyGuard {
      * @param _tokenId unique ID of the auctioned NFT asset
      */
     function deleteAuction(address _nftContractAddress, uint256 _tokenId)
-        internal
+        private
     {
         Auction storage auction = auctions[_nftContractAddress][_tokenId];
-        require(msg.sender == auction.owner, "not auction owner");
+        // require(msg.sender == auction.owner, "not auction owner");
         Bid memory bid = auction.bids[address(0)];
         for (uint256 i; i < auction.bidders.length; i++) {
             auction.bids[auction.bidders[i]] = bid;
@@ -340,7 +321,6 @@ contract Dauction is ReentrancyGuard {
             bidAmount = bid.amountBidded;
             address selectedBidToken = bid.bidToken;
 
-            console.log("bid amount before tenary %s", bidAmount);
             uint256 formattedPrice = checkBidTokenUSDTEquivalence(
                 selectedBidToken
             )
@@ -350,10 +330,7 @@ contract Dauction is ReentrancyGuard {
                     bidAmount
                 );
 
-            console.log("formatted price from dauction__ %s", formattedPrice);
-
             if (formattedPrice > highestBidAmount) {
-                console.log("formatted price %s", formattedPrice);
                 highestBidAmount = formattedPrice;
                 highestBidder = bidder;
             }
@@ -372,6 +349,8 @@ contract Dauction is ReentrancyGuard {
                 tokenId
             );
 
+            deleteAuction(nftAddress, tokenId);
+
             emit AuctionUnsettled(
                 nftAddress,
                 tokenId,
@@ -380,20 +359,12 @@ contract Dauction is ReentrancyGuard {
             );
         } else {
             // transfer token to auction owner
-            console.log("highest bidder__from dauc: %s", highestBidder);
-            // console.log("highest dauc test 1: %s", bidAmount);
             Bid memory bid = auction.bids[highestBidder];
             IERC20(bid.bidToken).transferFrom(
                 highestBidder,
                 msg.sender,
                 bid.amountBidded
             );
-            // console.log("transferred bid amount %s", bidAmount);
-            console.log(
-                "highest bid amount from dauction %s",
-                highestBidAmount
-            );
-
             // transfer NFT to highest bidder
             IERC721(nftAddress).safeTransferFrom(
                 address(this),
@@ -411,7 +382,6 @@ contract Dauction is ReentrancyGuard {
             );
         }
         deleteAuction(nftAddress, tokenId);
-
     }
 
     /********************************************************************************************/
