@@ -51,7 +51,7 @@ Bidders can only create bid for a valid NFT asset for which auction has been suc
 - [MockWETH](https://goerli.etherscan.io/token/0x5db5a283bdebf69a9e779e7fef7d6616b02dffe6)
 - [MockWBTC](https://goerli.etherscan.io/token/0x5df75ff8fe3fcbbf056db82ad5b6c96aa5044964)
 - [DauctionNFT](https://goerli.etherscan.io/token/0x17d76D5776505eD9F60030eb8744B88A96ff9e84)
-- [Dauction Marketplace Contract](https://goerli.etherscan.io/address/0xcef7ac5c9a677db855f5a216f3c93f9e7c8cd78a)
+- [Dauction Marketplace Contract](https://goerli.etherscan.io/address/0x67fd942138ea7d117971944b88d8d80b08c9d2e9)
 
 
 ### Test
