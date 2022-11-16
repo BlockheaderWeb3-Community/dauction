@@ -200,29 +200,51 @@ describe('Dauction Marketplace', async () => {
   })
 
   describe('Create Auction Validations', () => {
-    it("should revert negative create auction cases", async () => {
-      // addr1 approves auction contract
-      await nftContract.connect(addr1).approve(dauction.address, 1)
+    it("should revert when auction creator is not nft owner", async()=> {
+      const FAIL_CASE = [nftContract.address, 1, 10, setTime(2), setTime(4), setTime(5)] as const;
+      await expect(dauction.connect(addr2).createAuction(...FAIL_CASE))
+      .to.be.revertedWith("not owner");
+    });
 
+    it("should revert when auction start time has passed", async()=> {
+      const FAIL_CASE = [nftContract.address, 1, 10, setTime(-1), setTime(4), setTime(5)] as const;
+      await expect(dauction.connect(addr1).createAuction(...FAIL_CASE))
+      .to.be.revertedWith("invalid auction start time");
+    });
 
-      const FAIL_CASES = [
-        [nftContract.address, 1, 0, setTime(2), setTime(4), setTime(5)],
-        [nftContract.address, 1, 5, setTime(0), setTime(2), setTime(3)],
-        [nftContract.address, 1, 5, setTime(3), setTime(1), setTime(3)],
-        [nftContract.address, 1, 5, setTime(2), setTime(2), setTime(2)],
-        [nftContract.address, 1, 5, setTime(2), setTime(5), setTime(6)]
+    it("should revert when auction min bid price is 0", async()=> {
+      const FAIL_CASE = [nftContract.address, 1, 0, setTime(1), setTime(4), setTime(5)] as const;
+      await expect(dauction.connect(addr1).createAuction(...FAIL_CASE))
+      .to.be.revertedWith("auction price cannot be zero");
+    });
 
-      ] as const
+    it("should revert when auction duration is lesser than min duration(1 hour)", async()=> {
+      const FAIL_CASE = [nftContract.address, 1, 10, setTime(1), setTime(1.5), setTime(5)] as const;
+      await expect(dauction.connect(addr1).createAuction(...FAIL_CASE))
+      .to.be.revertedWith("invalid auction end time");
+    });
 
-      expect(dauction.connect(addr1).createAuction(...FAIL_CASES[0])).to.be.reverted // revert NFT owner attempt to add 0 minBidPrice
-      expect(dauction.connect(addr1).createAuction(...FAIL_CASES[1])).to.be.reverted // revert NFT owner attempt to set invalid startTime
-      expect(dauction.connect(addr1).createAuction(...FAIL_CASES[2])).to.be.reverted // revert NFT owner attempt to set invalid endTime
-      expect(dauction.connect(addr1).createAuction(...FAIL_CASES[3])).to.be.reverted // revert NFT owner attempt to set invalid duration period
-      expect(dauction.createAuction(...FAIL_CASES[4])).to.be.reverted // revert non-NFT owner attempt to set auction
-    }); 
+    it("should revert when auction reveal time is before auction end time", async()=> {
+      const FAIL_CASE = [nftContract.address, 1, 10, setTime(1), setTime(4), setTime(3)] as const;
+      await expect(dauction.connect(addr1).createAuction(...FAIL_CASE))
+      .to.be.revertedWith("invalid reveal duration time");
+    });
 
+    it("should revert when the contract is not approved to transfer the auction nft", async()=> {
+      const CASE = [nftContract.address, 1, 10, setTime(1), setTime(3), setTime(4)] as const;
+      await expect(dauction.connect(addr1).createAuction(...CASE))
+      .to.be.revertedWith("ERC721: caller is not token owner nor approved");
+    });
 
-    it.only("should successfully create auction and emit proper event", async () => {
+    it("should revert when an auction with the same nft address and id is active", async()=> {
+      const CASE = [nftContract.address, 1, 10, setTime(1), setTime(3), setTime(4)] as const;
+      await nftContract.connect(addr1).approve(dauction.address, 1);
+      await dauction.connect(addr1).createAuction(...CASE);
+      await expect(dauction.connect(addr1).createAuction(...CASE))
+      .to.be.revertedWith("not owner");
+    });
+
+    it("should successfully create auction and emit proper event", async () => {
       /* 
       CREATE ACTION PARAMS
         address nftContractAddress,
@@ -250,9 +272,9 @@ describe('Dauction Marketplace', async () => {
 
       expect(minBidPrice).to.eq(5); // expect minBidPrice to equal 5
       expect(auctionStatus).to.eq(1); // expect auctionStatus to equal 1 based on the set enum state
-      expect((startTime)).to.eq(BigNumber.from(await AUCTION_PARAMS[3])); // expect start time to eq passed in start time
-      expect((endTime)).to.eq(BigNumber.from(await AUCTION_PARAMS[4])); // expect start time to eq passed in end time
-      expect((revealDuration)).to.eq(BigNumber.from(await AUCTION_PARAMS[5])); // expect start time to eq passed in end duration time
+      expect((startTime)).to.eq(start); // expect start time to eq passed in start time
+      expect((endTime)).to.eq(end); // expect start time to eq passed in end time
+      expect((revealDuration)).to.eq(revealTime); // expect start time to eq passed in end duration time
       expect(owner).to.eq(addr1.address) // expect auction owner to equal address 1
       expect(await dauction.totalAuctions()).to.eq(1);
     });
