@@ -613,7 +613,7 @@ describe('Dauction Marketplace', async () => {
     })
 
 
-    it("should transfer nft back to auctioneer when no bid exist at the elapse of the auction when auction is settled", async () => {
+    it.only("should transfer nft back to auctioneer when no bid exist at the elapse of the auction when auction is settled", async () => {
       // deployer transfer 1k mockUSDT to addr4
       await mockLINK.transfer(addr4.address, parseEther("1000"));
 
@@ -631,6 +631,7 @@ describe('Dauction Marketplace', async () => {
         .withArgs(nftContract.address, 1, addr1.address, anyValue);
 
       expect(await nftContract.ownerOf(1)).to.eq(addr1.address)
+      
       // nft owner balance remains unchanged
       expect(await mockWBTC.balanceOf(addr1.address)).to.eq(parseEther('10000'))
       expect(await mockWETH.balanceOf(addr1.address)).to.eq(parseEther('10000'))
@@ -644,6 +645,8 @@ describe('Dauction Marketplace', async () => {
       const auctionDetails = await dauction.auctions(AUCTION_PARAMS[0], AUCTION_PARAMS[1])
       console.log("auction details__", auctionDetails)
       const { auctionStatus, owner } = auctionDetails
+
+      // reset auction struct
       expect(owner).to.eq(ZERO_ADDRESS)
       expect(auctionStatus).to.eq(0);
 
