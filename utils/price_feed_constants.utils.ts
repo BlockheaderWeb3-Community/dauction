@@ -1,4 +1,4 @@
-
+import { ethers } from "hardhat";
 const WETH_USD =
     "0xD4a33860578De61DBAbDc8BFdb98FD742fA7028e"; // ETH/USD Aggregator Address
 const WBTC_USD =
@@ -6,7 +6,7 @@ const WBTC_USD =
 
 const LINK_USD = "0x48731cF7e84dc94C5f84577882c14Be11a5B7456"  // LINK/USD Aggregator Address
 
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
+const ZERO_ADDRESS = ethers.constants.AddressZero
 
 
 
