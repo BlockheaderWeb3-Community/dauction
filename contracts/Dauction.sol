@@ -323,7 +323,7 @@ contract Dauction is ReentrancyGuard {
         // check that the reveal time has elapsed
         require(
             block.timestamp > auction.revealDuration,
-            "not in reveal phase"
+            "reveal phase not over"
         );
 
         address bidder;
@@ -406,7 +406,7 @@ contract Dauction is ReentrancyGuard {
                 nftAddress,
                 tokenId,
                 msg.sender,
-                auction.owner,
+                highestBidder,
                 highestBidAmount
             );
         }
