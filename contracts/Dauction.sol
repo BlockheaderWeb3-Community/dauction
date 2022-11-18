@@ -34,6 +34,7 @@ contract Dauction is ReentrancyGuard {
 
     // auction struct for seller
     struct Auction {
+        address nftContract;
         address payable owner;
         uint256 startTime;
         uint256 minBidPrice;
@@ -93,12 +94,10 @@ contract Dauction is ReentrancyGuard {
         uint256 tokenId,
         address previousOwner,
         address newOwner,
-        uint256 tokenAmountPaid
+        uint256 tokenAmountPaid,
+        uint256 auctionSettleTime
     );
 
-    // instantiate the constructor with LINK, WETH, WBTC and USDT addresses
-
-    // BidTokens[] public bidTokenParamsArray;
     address deployer;
 
     constructor(BidTokens[] memory bidTokensArray, address _USDT) {
@@ -376,7 +375,8 @@ contract Dauction is ReentrancyGuard {
                 tokenId,
                 msg.sender,
                 highestBidder,
-                highestBidAmount
+                highestBidAmount, 
+                block.timestamp
             );
         }
         deleteAuction(nftAddress, tokenId);
@@ -423,6 +423,8 @@ contract Dauction is ReentrancyGuard {
     function getBidTokens() public view returns (BidTokens[] memory) {
         return bidTokens;
     }
+
+    // function getApproval() 
 
     /**
      * @dev determines the priceFeed address to be used based on the bid token selected by the bidder

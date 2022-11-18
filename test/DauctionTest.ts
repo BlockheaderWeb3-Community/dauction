@@ -38,7 +38,7 @@ describe('Dauction Marketplace', async () => {
 
     [deployer, addr1, addr2, addr3, addr4, addr5] = await ethers.getSigners();
     const nftDeployer = new NFTContract__factory(deployer);
-    nftContract = await nftDeployer.deploy('DauctionNFT', 'dNFT');  // ntf contract deployment
+    nftContract = await nftDeployer.deploy('DauctionNFT', 'dNFT', "ipfs://QmeYhWhdX1ALiF5AeaHM5VwAR6XEUqL58kmdEx8GxxPkXk/");  // ntf contract deployment
 
     // mockUSDT contract deployment
     const ERC20Deployer = new MockToken__factory(deployer);
@@ -746,7 +746,7 @@ describe('Dauction Marketplace', async () => {
       
       const tx = dauction.connect(addr1).settleAuction(nftContract.address, 1); // addr1 settles auction
       await expect(tx).to.emit(dauction, "AuctionSettled").withArgs(nftContract.address, 1, 
-        addr1.address, addr5.address, addr5BidValue);
+        addr1.address, addr5.address, addr5BidValue, anyValue);
 
                      
       expect(await nftContract.ownerOf(1)).to.eq(addr5.address);
