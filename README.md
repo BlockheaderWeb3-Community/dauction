@@ -8,15 +8,11 @@ We intend to solve the problem surrounding the privacy of auction bids and the c
 
 
 ## Our Solution
+- `Privacy` - by implementing seal-bids, bidders are guaranteed that: 
+  - their bids are kept private until the reveal bid phase is reached as specified by the auctioneer when creating auction. 
+  - their respectives cannot be censored
 
-`Privacy`
-By implementing seal-bids, bidders are guaranteed that: 
-- their bids are kept private until the reveal bid phase is reached as specified by the auctioneer when creating auction. 
-- their respectives cannot be censored
-
-
-`Multi-token Bids`
-Our solution offers bidders an opportunity to bid with multiple tokens other than the conventional approach of bidding with single tokens. The logic that determines the selection of the highest bidder and the USD value of the highest bid is correctly evaluated by leveraging Chainlink's battle-tested price feeds thus supporting the following ERC20 tokens:
+- `Multi-token Bids` - our solution offers bidders an opportunity to bid with multiple tokens other than the conventional approach of bidding with a specific auction platform-defined asset. The logic that determines the selection of the highest bidder and the USD value of the highest bid is correctly evaluated by leveraging Chainlink's battle-tested price feeds thus enabling us to support the use of following ERC20 tokens as bid tokens:
   - `Chainlink token - LINK`
   - `Wrapped Ether - WETH`
   - `Wrapped BTC - WBTC`
