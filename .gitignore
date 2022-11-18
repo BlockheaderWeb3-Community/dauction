@@ -7,9 +7,10 @@ typechain-types
 
 #Hardhat files
 cache
-artifacts/@chainlink 
-artifacts/@openzeppelin
-artifacts/build-info
-artifacts/hardhat
+artifacts
+# artifacts/@chainlink 
+# artifacts/@openzeppelin
+# artifacts/build-info
+# artifacts/hardhat
 
 
