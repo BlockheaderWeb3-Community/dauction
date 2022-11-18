@@ -1,8 +1,8 @@
 require("dotenv").config()
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-const { PRIVATE_KEY, GOERLI_API_KEY, ETHERSCAN_KEY } = process.env
-const block1 = 7976386
+const { PRIVATE_KEY, GOERLI_API_KEY, ETHERSCAN_KEY, MUMBAI_KEY } = process.env
+const block1 = 29216505
 
 
 
@@ -11,18 +11,18 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: `${GOERLI_API_KEY}`,
+        url: `${MUMBAI_KEY}`,
         blockNumber: block1
       }
 
     },
     
     goerli: {
-      url: GOERLI_API_KEY,
+      url: MUMBAI_KEY,
       accounts: [`0x${PRIVATE_KEY}`]
     },
     mumbai: {
-      url: GOERLI_API_KEY,
+      url: MUMBAI_KEY,
       accounts: [`0x${PRIVATE_KEY}`]
     }
   },

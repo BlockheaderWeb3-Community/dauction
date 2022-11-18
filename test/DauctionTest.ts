@@ -13,7 +13,7 @@ import { MockToken } from "../typechain-types/contracts/MockToken";
 import { MockToken__factory } from "../typechain-types/factories/contracts/MockToken__factory";
 import { NFTContract } from "../typechain-types/contracts/NFTContract";
 import { NFTContract__factory } from "../typechain-types/factories/contracts/NFTContract__factory";
-import { addHours, increaseBlockTimestamp, setHour, setTime } from "../utils/time.utils"
+import {  increaseBlockTimestamp, setHour, setTime } from "../utils/time.utils"
 const INITIAL_TOKEN_TRANSFER_AMOUNT = 10000
 
 const [mUSDT, mLINK, mWBTC, mWETH] = ["mUSDT", "mLINK", "mWBTC", "mWETH"];
@@ -156,12 +156,13 @@ describe('Dauction Marketplace', async () => {
   })
 
   describe('Price Feed', () => {
-    it("should return formatted price feed of tokens", async () => {
+    it.only("should return formatted price feed of tokens", async () => {
 
       // WETH/USD price
       const [wethPrice, wethDecimals] = await dauction.getLatestPrice(WETH_USD);
       // Convert the price to a number and return it
       const formattedEthPrice = convertPriceToNumber(Number(wethPrice), wethDecimals);
+      console.log("formatted price__", formattedEthPrice)
 
        // assertion statement that WETH price is gte 1000 USD based on real-time exchange rate
       expect(formattedEthPrice).to.be.gte(1000);

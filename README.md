@@ -64,14 +64,14 @@ On the other hand, in the event of an unsuccessful bid, the NFT asset is transfe
 - the USD value of a given bid is lower than the amount specified by the auctioneer as the minimum bid price
 
 
-### Deployed Goerli Contracts
+### Deployed Polygon Mumbai Contracts
 
-- [MockUSDT](https://goerli.etherscan.io/token/0x289bc9A76ADbF81746db9A8e99DdF6776d41D84b)
-- [MockLINK](https://goerli.etherscan.io/token/0xda469e02e3d939c3ffafa5e8bf9569ccffe8da0d)
-- [MockWETH](https://goerli.etherscan.io/token/0x5db5a283bdebf69a9e779e7fef7d6616b02dffe6)
-- [MockWBTC](https://goerli.etherscan.io/token/0x5df75ff8fe3fcbbf056db82ad5b6c96aa5044964)
-- [DauctionNFT](https://goerli.etherscan.io/token/0x17d76D5776505eD9F60030eb8744B88A96ff9e84)
-- [Dauction Marketplace Contract](https://goerli.etherscan.io/address/0x67fd942138ea7d117971944b88d8d80b08c9d2e9)
+- [MockUSDT](https://mumbai.polygonscan.com/token/0xF5F052f062c91eE3D8604e888C294313c2cbFc80)
+- [MockLINK](https://mumbai.polygonscan.com/token/0x80022d32165A3a4a030393F9676fAe73BA378221)
+- [MockWETH](https://mumbai.polygonscan.com/token/0x98588b914e64d0C03198e7B0c56D505aeeb65397)
+- [MockWBTC](https://mumbai.polygonscan.com/token/0xb3E401DB5382f786D1Ab5ccB7279004D47038422)
+- [DauctionNFT](https://mumbai.polygonscan.com/address/0xfc1ea6cc05d13650a1aceb1d08c44b4e3258a9c7)
+- [Dauction Marketplace Contract](https://mumbai.polygonscan.com/address/0x5Cf3c6435BEe8d61B2799501CB9EcB586774c51f)
 
 
 ### Test

@@ -81,8 +81,6 @@ contract Dauction is ReentrancyGuard, IDauctionEvents {
      * @param _startTime time of commencement of bid
      * @param _endTime expected time an auction should end
      * @param _revealDuration valid period within which all bidders must reveal their bid
-    
-
      */
 
     function createAuction(
