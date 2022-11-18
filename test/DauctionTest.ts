@@ -488,7 +488,7 @@ describe('Dauction Marketplace', async () => {
       increaseBlockTimestamp(2)
 
       await expect(dauction.connect(addr4).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt))).
-        to.be.revertedWith("insuff token bal");
+        to.be.revertedWith("insuff token balance or approval");
     })
 
     it("should revert bidder attempt to reveal bid with low allowance set for dauction contract", async () => {
@@ -504,7 +504,7 @@ describe('Dauction Marketplace', async () => {
 
       await mockWETH.connect(addr2).approve(dauction.address, parseEther('1'))
       await expect(dauction.connect(addr2).revealBid(nftContract.address, 1, addr2BidValue, createSalt(addr2Salt))).
-        to.be.revertedWith("low token allowance");
+        to.be.revertedWith("insuff token balance or approval");
     })
 
     it("should revert bidder attempt to reveal bid with invalid reveal bid params", async () => {
