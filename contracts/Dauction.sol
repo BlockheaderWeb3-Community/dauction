@@ -8,9 +8,11 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-contract Dauction is ReentrancyGuard {
+import "./IDauctionEvents.sol";
+
+
+contract Dauction is ReentrancyGuard, IDauctionEvents {
     using SafeERC20 for IERC20;
-    // @dev rep
     struct BidTokens {
         address token;
         address priceFeed;
@@ -21,10 +23,10 @@ contract Dauction is ReentrancyGuard {
 
     uint256 public totalAuctions;
 
-    uint256 public constant MIN_AUCTION_PERIOD = 60 minutes;
+    uint256 public minAuctionPeriod;
 
     address immutable USDT;
-    
+
     // bidder's props
     struct Bid {
         uint256 amountBidded;
@@ -56,58 +58,16 @@ contract Dauction is ReentrancyGuard {
     }
 
     mapping(address => mapping(uint256 => Auction)) public auctions; // mapping NFT address to tokenId as key, Auctions == values
-
-    event AuctionCreated(
-        address nft,
-        uint256 tokenId,
-        address seller,
-        uint256 minBidPrice,
-        uint256 startTime,
-        uint256 endTime,
-        uint256 revealDuration,
-        uint256 auctionCreatedAt
-    );
-
-    event BidCreated(
-        address nftContractAddress,
-        uint256 tokenId,
-        bytes32 bidCommitment,
-        uint256 biddedAt
-    );
-
-    event BidRevealed(
-        address tokenContract,
-        uint256 tokenId,
-        bytes32 bidHash,
-        address bidder,
-        bytes32 salt,
-        uint256 bidValue
-    );
-    event AuctionUnsettled(
-        address nftAddress,
-        uint256 tokenId,
-        address owner,
-        uint256 time
-    );
-    event AuctionSettled(
-        address nftAddress,
-        uint256 tokenId,
-        address previousOwner,
-        address newOwner,
-        uint256 tokenAmountPaid,
-        uint256 auctionSettleTime
-    );
-
     address deployer;
 
-    constructor(BidTokens[] memory bidTokensArray, address _USDT) {
-        // BidTokens memory bidTokensMemoryArray;
+    constructor(BidTokens[] memory bidTokensArray, address _USDT, uint256 _minAuctionPeriod) {
         for (uint256 i; i < bidTokensArray.length; i++) {
             bidTokenToPriceFeed[bidTokensArray[i].token] = bidTokensArray[i]
                 .priceFeed;
         }
         USDT = _USDT;
         deployer = msg.sender;
+        minAuctionPeriod = _minAuctionPeriod * 1 minutes;
     }
 
     /**
@@ -118,6 +78,7 @@ contract Dauction is ReentrancyGuard {
      * @param _startTime time of commencement of bid
      * @param _endTime expected time an auction should end
      * @param _revealDuration valid period within which all bidders must reveal their bid
+    
 
      */
 
@@ -134,7 +95,7 @@ contract Dauction is ReentrancyGuard {
         require(_startTime >= block.timestamp, "invalid auction start time");
         require(_minBidPrice > 0, "auction price cannot be zero");
         require(
-            _endTime >= _startTime + MIN_AUCTION_PERIOD,
+            _endTime >= _startTime + minAuctionPeriod,
             "invalid auction end time"
         );
         require(_revealDuration > _endTime, "invalid reveal duration time");
@@ -382,6 +343,11 @@ contract Dauction is ReentrancyGuard {
         deleteAuction(nftAddress, tokenId);
     }
 
+    function setMinimumAuctionPeriod(uint256 _auctionDuration) public  {
+        require(msg.sender == deployer, "cannot increase time");
+        require(_auctionDuration != 0, "auction duration cannot be zero");
+        minAuctionPeriod = _auctionDuration * 1 minutes;
+    } 
     /********************************************************************************************/
     /*                                      UTILITY FUNCTIONS                                  */
     /******************************************************************************************/

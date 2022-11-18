@@ -2,7 +2,7 @@ require("dotenv").config()
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 const { PRIVATE_KEY, GOERLI_API_KEY, ETHERSCAN_KEY } = process.env
-const block1 = 7940053
+const block1 = 7976386
 
 
 

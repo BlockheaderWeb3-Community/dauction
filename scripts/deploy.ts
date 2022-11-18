@@ -53,12 +53,12 @@ const main = async () => {
   console.log(`NFT Contract address: ${nftContractAddress}`)
 
    
-  //  // first 10 nft mint by deployer
-  //  const totalMints = 10;
-  //  for (let i = 0; i < totalMints; i++) {
-  //    const txn = await nftContract.mintNFT()
-  //    await txn.wait()
-  //  }
+   // first 10 nft mint by deployer
+   const totalMints = 10;
+   for (let i = 0; i < totalMints; i++) {
+     const txn = await nftContract.mintNFT()
+     await txn.wait()
+   }
 
 
   // const mockUsdtAddress: string = "0x289bc9A76ADbF81746db9A8e99DdF6776d41D84b"

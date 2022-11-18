@@ -13,7 +13,7 @@ import { MockToken } from "../typechain-types/contracts/MockToken";
 import { MockToken__factory } from "../typechain-types/factories/contracts/MockToken__factory";
 import { NFTContract } from "../typechain-types/contracts/NFTContract";
 import { NFTContract__factory } from "../typechain-types/factories/contracts/NFTContract__factory";
-import { increaseBlockTimestamp, setTime } from "../utils/time.utils"
+import { addHours, increaseBlockTimestamp, setHour, setTime } from "../utils/time.utils"
 const INITIAL_TOKEN_TRANSFER_AMOUNT = 10000
 
 const [mUSDT, mLINK, mWBTC, mWETH] = ["mUSDT", "mLINK", "mWBTC", "mWETH"];
@@ -78,7 +78,7 @@ describe('Dauction Marketplace', async () => {
 
     ];
     const dauctionDeployer = new Dauction__factory(deployer);
-    dauction = await dauctionDeployer.deploy(DAUCTION_CONSTRUCTOR_PARAMS, mockUSDT.address);
+    dauction = await dauctionDeployer.deploy(DAUCTION_CONSTRUCTOR_PARAMS, mockUSDT.address,  60);
 
     // first 10 nft mint by deployer
     for (let i = 0; i < 10; i++) {
