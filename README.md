@@ -5,10 +5,10 @@ This is a decentralized auction project that allow users to auction their assets
 ## Project Overview 
 
 ## Problem Statement
-We intend to solve a problem surrounding the privacy of auction bids. By implementing seal-bids, bidders are guaranteed that: 
-- their bids are kept private until the reveal bid phase as specified by the auctioneer when creating bids. 
+We intend to solve the problem surrounding the privacy of auction bids. By implementing seal-bids, bidders are guaranteed that: 
+- their bids are kept private until the reveal bid phase is reached as specified by the auctioneer when creating auction. 
 - their respectives cannot be censored
-- the logic that determines the selection of the highest bidder is correctly evaluated via Chainlink's battle-tested price feeds
+- the logic that determines the selection of the highest bidder is correctly evaluated by leveraging Chainlink's battle-tested price feeds
   
 Our solution allows bidders to bid using different tokens: 
   - `Chainlink token - LINK`
@@ -19,10 +19,10 @@ Our solution allows bidders to bid using different tokens:
 ### Business Logic
 
 ##### Create Auction
-To proceed, to create an auction, the auctioneer will approves NFT by calling `approve` function in DauctionNFT with the following arguments:
+To create an auction, the auctioneer will first approves NFT by calling `approve` function in DauctionNFT with the following arguments:
     - `to` - DauctionNFT address
     - `tokenId` - unique ID of NFT asset
-Auctioneer (NFT owner) initiates the auction at any time with the following parameters (cannot participate in this auction)
+Having granted `Dauction` contract approval to use the NFT, an auctioneer (NFT owner) initiates the auction with the following parameters (cannot participate in this auction)
   - `_nftAddress` - address of the NFT asset
   - `tokenId` - unique ID of the NFT asset
   - `minBidPrice` - the minimum amount the owner intends to sell his asset
@@ -30,7 +30,7 @@ Auctioneer (NFT owner) initiates the auction at any time with the following para
   - `endTime` - the specified auction-end time by the seller/owner of NFT
   - `_revealDuration` - the time specified by the seller as the timeframe for which all bidders must reveal the value of their bids
 
----
+
 
 ##### Create Bid
 Bidders can only create bid for a valid NFT asset for which auction has been successfully created. Bids are sent with the following parameters: 
@@ -39,11 +39,28 @@ Bidders can only create bid for a valid NFT asset for which auction has been suc
   - `bidCommitment` - hashed combination of bidders' `bidValue` and `salt` (which serves as an extra layer to further make it difficult to guess)
   - `bidToken` - address of the token a bidder intends to bid with
 - [x] As the auction `startTime` elapses, bidders can proceed to reveal their respective bids
-- [ ] 
+
+
+##### Reveal Bid
+At the elapse of the end bid time, is the reveal bid phase where bidders can unhash the value of their bids with the following parameters:
+ - `nftAddress` - address of the NFT asset,
+ - `tokenId` - unique ID of the NFT
+ - `bidValue` -  amount of tokens bidded with
+ - `salt` - random number to further hash a bidder's bid commitment 
+       
+
+##### Settle Auction
+Following the submission and revealing of bids by bidders, an auctioneer proceeds to settle the auction. This ensures the determination of the `highestBidder` and the value of the `highestBid` after the determination of the  token-USD exchange rate in real-time as calculated using Chainlink's price feed. 
+
+A bid is considered successful if after being revealed, it is determined that its USD value is not lower than the minimum bid price. In this case, the NFT asset is transferred to the highest bidder while the biddded token is transferred to the auctioneer.
+
+On the other hand, in the event of an unsuccessful bid, the NFT asset is transferred back to the auctioneer in the following cases:
+- no bid was created for a given auction
+- the auctioned NFT is transferred back to the auctioneer
+- USD value of a given bid is lower than the minimum bid price
 
 ## Steps
--
-- 
+
 ### Deployed Goerli Contracts
 
 - [MockUSDT](https://goerli.etherscan.io/token/0x289bc9A76ADbF81746db9A8e99DdF6776d41D84b)

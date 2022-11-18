@@ -349,7 +349,7 @@ contract Dauction is ReentrancyGuard {
                 tokenId
             );
 
-            deleteAuction(nftAddress, tokenId);
+            // deleteAuction(nftAddress, tokenId);
 
             emit AuctionUnsettled(
                 nftAddress,
@@ -377,7 +377,7 @@ contract Dauction is ReentrancyGuard {
                 nftAddress,
                 tokenId,
                 msg.sender,
-                auction.owner,
+                highestBidder,
                 highestBidAmount
             );
         }
