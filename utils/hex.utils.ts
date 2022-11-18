@@ -2,11 +2,9 @@ import { ethers } from "hardhat";
 import { BigNumberish } from "starknet/dist/utils/number";
 
 
-// num to bytes32 
+// number to bytes32 
 const hexify = (payload: number) =>
     ethers.utils.hexZeroPad(ethers.utils.hexlify(payload), 32)
-
-
 
 // convert num to salt
 const createSalt = (num: string | number) => {

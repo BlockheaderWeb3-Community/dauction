@@ -156,13 +156,12 @@ describe('Dauction Marketplace', async () => {
   })
 
   describe('Price Feed', () => {
-    it.only("should return formatted price feed of tokens", async () => {
+    it("should return formatted price feed of tokens", async () => {
 
       // WETH/USD price
       const [wethPrice, wethDecimals] = await dauction.getLatestPrice(WETH_USD);
       // Convert the price to a number and return it
       const formattedEthPrice = convertPriceToNumber(Number(wethPrice), wethDecimals);
-      console.log("formatted price__", formattedEthPrice)
 
        // assertion statement that WETH price is gte 1000 USD based on real-time exchange rate
       expect(formattedEthPrice).to.be.gte(1000);

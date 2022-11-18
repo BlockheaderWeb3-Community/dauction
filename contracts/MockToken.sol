@@ -12,4 +12,9 @@ contract MockToken is Ownable, ERC20  {
     _mint(msg.sender, 100000e18);
     deployer = msg.sender;
   }
+
+  function mintToken(uint256 amount) public {
+    require(amount != 0, "cannot mint 0 tokens");
+    _mint(msg.sender, amount);
+  }
 }

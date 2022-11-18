@@ -15,7 +15,6 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "test_mumbai": "hardhat test --network mumbai",
     "hard_ref": "killall -9 node",
     "deploy_goerli": "hardhat run --network goerli scripts/deploy.ts",
     "deploy_mumbai": "hardhat run --network mumbai scripts/deploy.ts"

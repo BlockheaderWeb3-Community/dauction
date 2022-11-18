@@ -8,12 +8,13 @@ import { WETH_USD, WBTC_USD, LINK_USD } from "../utils/price_feed_constants.util
 // let deployer, addr1, addr2, addr3, addr4, usdtContractAddress, MockWETH, MockWETH, MockUSDT, mockUSDT, MockLINK, mockLink, MockWbtc, mockWbtc
 const main = async () => {
   // [deployer, addr1, addr2, addr3, addr4] = await ethers.getSigners();
-/*
+  /*
   // mockUSDT contract deployment
   const MockUSDT = await ethers.getContractFactory('MockToken')
   const mockUSDT = await MockUSDT.deploy("Mock USDT", "mUSDT")
   await mockUSDT.deployed()
   console.log("mock usdt address:__", mockUSDT.address)
+
 
  
   // mockLINK contract deployment 
@@ -35,7 +36,6 @@ const main = async () => {
   await mockWbtc.deployed()
   console.log("mock wbtc address:__", mockWbtc.address)
 
-  */
 
 
 
@@ -44,6 +44,9 @@ const main = async () => {
   // usdtContractAddress = mockUSDT.address;
 
   // console.log(`usdt address: ${usdtContractAddress}`)
+
+  */
+
 
   // // transaction: transfer 1m mockUSDT to addr1
   // const transferUSDTToAddr1 = await mockUSDT.connect(deployer).transfer(addr1.address, parseToken(10000000));
@@ -63,11 +66,11 @@ const main = async () => {
   //    await txn.wait()
   //  }
 
-
-  const mockUsdtAddress: string = "0xF5F052f062c91eE3D8604e888C294313c2cbFc80"
-  const mockLinkAddress: string = "0x80022d32165A3a4a030393F9676fAe73BA378221"
-  const mockWethAddress: string = "0x98588b914e64d0C03198e7B0c56D505aeeb65397"
-  const mockWbtcAddress: string = "0xb3E401DB5382f786D1Ab5ccB7279004D47038422"
+ 
+  const mockUsdtAddress: string = "0xF2e6a9D38fd8CD44E47dc7056d5d53437F439960"
+  const mockLinkAddress: string = "0x5287a50e5fA645d076Dce101A9C22C62E49BECF6"
+  const mockWethAddress: string = "0x0EE68932A59276FEfaf7dA0F68DfEC8472Be3296"
+  const mockWbtcAddress: string = "0x31B2d46A1f00792ec22897F67C6880cFf38B97aE"
   
       // Dauction constructor params
       const DAUCTION_CONSTRUCTOR_PARAMS = [
@@ -95,6 +98,8 @@ const main = async () => {
   await dauction.deployed()
   const dauctionAddress = dauction.address
   console.log(`dauction deployed to : ${dauctionAddress}`)
+
+
 
 
 
