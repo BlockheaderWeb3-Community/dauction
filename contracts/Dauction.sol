@@ -23,9 +23,12 @@ contract Dauction is ReentrancyGuard, IDauctionEvents {
 
     uint256 public totalAuctions;
 
+    uint256 public activeAuctions;
+
     uint256 public minAuctionPeriod;
 
     address immutable USDT;
+
 
     // bidder's props
     struct Bid {
@@ -164,10 +167,13 @@ contract Dauction is ReentrancyGuard, IDauctionEvents {
         require(bid.bidCommitHash == bytes32(0), "initialized bidCommitment");
 
         bid.bidCommitHash = _hashBidAmount(msg.sender, bidCommitment, bidToken); // hash the bid
-        auction.auctionStatus = AuctionStatus.Bidded;
+        if (auction.auctionStatus == AuctionStatus.Initiated) {
+            auction.auctionStatus = AuctionStatus.Bidded;
+        }
 
         bid.bidToken = bidToken;
         auction.bidders.push(msg.sender);
+        activeAuctions++;
 
         emit BidCreated(
             nftContractAddress,
@@ -204,8 +210,8 @@ contract Dauction is ReentrancyGuard, IDauctionEvents {
         address bidToken = bid.bidToken;
 
         require(
-            IERC20(bidToken).balanceOf(msg.sender) >= bidValue,
-            "insuff token bal"
+            checkTokenBalanceAndApproval(bidToken, msg.sender, bidValue),
+            "insuff token balance or approval"
         );
 
         require(
@@ -222,7 +228,9 @@ contract Dauction is ReentrancyGuard, IDauctionEvents {
         require(verifyCommitHash == bid.bidCommitHash, "invalid bid hash");
 
         bid.amountBidded = bidValue;
-        auction.auctionStatus = AuctionStatus.Revealed;
+        if (auction.auctionStatus == AuctionStatus.Bidded) {
+            auction.auctionStatus = AuctionStatus.Revealed;
+        }
 
         emit BidRevealed(
             nftAddress,
@@ -289,8 +297,16 @@ contract Dauction is ReentrancyGuard, IDauctionEvents {
                 );
 
             if (formattedPrice > highestBidAmount) {
-                highestBidAmount = formattedPrice;
-                highestBidder = bidder;
+                if (
+                    checkTokenBalanceAndApproval(
+                        selectedBidToken,
+                        bidder,
+                        bidAmount
+                    )
+                ) {
+                    highestBidAmount = formattedPrice;
+                    highestBidder = bidder;
+                }
             }
         }
 
@@ -316,6 +332,7 @@ contract Dauction is ReentrancyGuard, IDauctionEvents {
                 block.timestamp
             );
         } else {
+            auction.auctionStatus = AuctionStatus.Executed;
             // transfer token to auction owner
             Bid memory bid = auction.bids[highestBidder];
             IERC20(bid.bidToken).transferFrom(
@@ -341,6 +358,18 @@ contract Dauction is ReentrancyGuard, IDauctionEvents {
             );
         }
         deleteAuction(nftAddress, tokenId);
+        // activeAuctions--;
+    }
+
+    function checkTokenBalanceAndApproval(
+        address tokenAddress,
+        address approver,
+        uint256 bidValue
+    ) public view returns (bool) {
+        IERC20 tokenInstance = IERC20(tokenAddress);
+        return
+            tokenInstance.balanceOf(approver) >= bidValue &&
+            tokenInstance.allowance(approver, address(this)) >= bidValue;
     }
 
     function setMinimumAuctionPeriod(uint256 _auctionDuration) public  {
