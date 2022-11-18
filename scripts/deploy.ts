@@ -46,11 +46,11 @@ const main = async () => {
   // const transferUSDTToAddr1 = await mockUSDT.connect(deployer).transfer(addr1.address, parseToken(10000000));
   // await transferUSDTToAddr1.wait();
 
-  // const NFTContract = await ethers.getContractFactory('NFTContract')
-  // const nftContract = await NFTContract.deploy('DauctionNFT', 'DNFT')
-  // await nftContract.deployed()
-  // const nftContractAddress = nftContract.address
-  // console.log(`NFT Contract address: ${nftContractAddress}`)
+  const NFTContract = await ethers.getContractFactory('NFTContract')
+  const nftContract = await NFTContract.deploy('DauctionNFT', 'DNFT', "ipfs://QmeYhWhdX1ALiF5AeaHM5VwAR6XEUqL58kmdEx8GxxPkXk/")
+  await nftContract.deployed()
+  const nftContractAddress = nftContract.address
+  console.log(`NFT Contract address: ${nftContractAddress}`)
 
    
   //  // first 10 nft mint by deployer
@@ -61,37 +61,37 @@ const main = async () => {
   //  }
 
 
-  const mockUsdtAddress: string = "0x289bc9A76ADbF81746db9A8e99DdF6776d41D84b"
-  const mockLinkAddress: string = "0xda469e02e3d939c3ffafa5e8bf9569ccffe8da0d"
-  const mockWethAddress: string = "0x5db5A283bdEBF69a9e779E7feF7d6616b02DFFe6"
-  const mockWbtcAddress: string = "0x5Df75FF8fe3fCBbf056dB82ad5b6c96aa5044964"
+  // const mockUsdtAddress: string = "0x289bc9A76ADbF81746db9A8e99DdF6776d41D84b"
+  // const mockLinkAddress: string = "0xda469e02e3d939c3ffafa5e8bf9569ccffe8da0d"
+  // const mockWethAddress: string = "0x5db5A283bdEBF69a9e779E7feF7d6616b02DFFe6"
+  // const mockWbtcAddress: string = "0x5Df75FF8fe3fCBbf056dB82ad5b6c96aa5044964"
   
-      // Dauction constructor params
-      const DAUCTION_CONSTRUCTOR_PARAMS = [
-        {
-          token: mockUsdtAddress,
-          priceFeed: ethers.constants.AddressZero
-        },
-        {
-          token: mockLinkAddress,
-          priceFeed: LINK_USD
-        },
-        {
-          token: mockWethAddress,
-          priceFeed: WETH_USD
-        },
-        {
-          token: mockWbtcAddress,
-          priceFeed: WBTC_USD
-        },
+  //     // Dauction constructor params
+  //     const DAUCTION_CONSTRUCTOR_PARAMS = [
+  //       {
+  //         token: mockUsdtAddress,
+  //         priceFeed: ethers.constants.AddressZero
+  //       },
+  //       {
+  //         token: mockLinkAddress,
+  //         priceFeed: LINK_USD
+  //       },
+  //       {
+  //         token: mockWethAddress,
+  //         priceFeed: WETH_USD
+  //       },
+  //       {
+  //         token: mockWbtcAddress,
+  //         priceFeed: WBTC_USD
+  //       },
   
-      ];
+  //     ];
   
-  const Dauction = await ethers.getContractFactory('Dauction')
-  const dauction = await Dauction.deploy(DAUCTION_CONSTRUCTOR_PARAMS, mockUsdtAddress)
-  await dauction.deployed()
-  const dauctionAddress = dauction.address
-  console.log(`dauction deployed to : ${dauctionAddress}`)
+  // const Dauction = await ethers.getContractFactory('Dauction')
+  // const dauction = await Dauction.deploy(DAUCTION_CONSTRUCTOR_PARAMS, mockUsdtAddress)
+  // await dauction.deployed()
+  // const dauctionAddress = dauction.address
+  // console.log(`dauction deployed to : ${dauctionAddress}`)
 
 
 

@@ -6,29 +6,33 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract NFTContract is ERC721URIStorage {
+
+contract NFTContract is ERC721 {
     using Counters for Counters.Counter;
+    using Strings for uint256;
+
     Counters.Counter private _nftIds;
 
     uint256 public constant MAX_SUPPLY = 1000;
 
     uint256 public totalMinted;
 
-    string[3] public tokenUriArray = [
-        "https://ipfs.io/ipfs/QmeGfTLw5i8Mz9Gi4ZrN8DPPLSr18MN42uZLbciroxhnSa"
-    ];
-
-    constructor(string memory name_, string memory symbol_)
+    string public uri;
+ 
+    constructor(string memory name_, string memory symbol_, string memory _uri)
         ERC721(name_, symbol_)
-    {}
+    {
+        uri = _uri;
+    }
 
     function mintNFT() external {
         uint256 newTokenId = _nftIds.current();
         require(newTokenId <= MAX_SUPPLY, "limit exceeded");
         _safeMint(msg.sender, newTokenId);
         _nftIds.increment();
-        setTokenURI();
         totalMinted += 1;
     }
 
@@ -36,14 +40,27 @@ contract NFTContract is ERC721URIStorage {
         return totalMinted;
     }
 
-    function setTokenURI() public {
-        _setTokenURI(
-            totalMinted,
-            "https://ipfs.io/ipfs/QmRn4Aaj4LMuunoJL3XNz92N1DwVdiesrvMJGymj26TnMF"
-        ); 
+    function _baseURI() internal override view returns (string memory) {
+        return uri;
     }
 
-    function getTokenURI(uint256 tokenId) public view returns (string memory) {
-        return tokenURI(tokenId);
+    function setBaseUri(string memory _uri) public {
+        uri = _uri;
     }
+
+     function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        _requireMinted(tokenId);
+
+        string memory baseURI = _baseURI();
+        return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString(), ".json")) : "";
+    }
+
+    // function setTokenURI() public {
+    //     _setTokenURI(
+    //         totalMinted,
+    //     "ipfs://QmeYhWhdX1ALiF5AeaHM5VwAR6XEUqL58kmdEx8GxxPkXk"
+    //     ); 
+    // }
+
+  
 }
