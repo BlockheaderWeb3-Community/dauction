@@ -110,6 +110,7 @@ contract Dauction is ReentrancyGuard, IDauctionEvents {
         auction.startTime = _startTime; // time for auction start
         auction.endTime = _endTime;
         auction.revealDuration = _revealDuration;
+        auction.nftContract = _nftAddress;
         totalAuctions = totalAuctions + 1;
 
         nftContract.transferFrom(msg.sender, address(this), _tokenId);

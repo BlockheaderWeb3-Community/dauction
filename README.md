@@ -77,4 +77,3 @@ On the other hand, in the event of an unsuccessful bid, the NFT asset is transfe
 ### Test
 Run `npm run test`
 
-## What's next for Dauction 
